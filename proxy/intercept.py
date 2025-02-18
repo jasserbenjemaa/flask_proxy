@@ -31,7 +31,7 @@ def response(flow: http.HTTPFlow) -> None:
         if flow.response and flow.response.content:
             response_data = json.loads(flow.response.content)
             if "message" in response_data:
-                response_data["message"] = "jasser"
+                response_data["message"] = "bace"
                 flow.response.content = json.dumps(response_data).encode()
             ctx.log.info(f"Response from backend: {flow.response.content.decode('utf-8')}")
     except Exception as e:
