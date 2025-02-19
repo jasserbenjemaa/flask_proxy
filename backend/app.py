@@ -6,9 +6,9 @@ app = Flask(__name__)
 @app.route('/api/time')
 def get_time():
     return jsonify({
-        'timestamp': datetime.datetime.utcnow().isoformat(),
-        'message': 'Hello from Backend!',
-        'source': 'backend-container'
+        'time': datetime.datetime.utcnow().isoformat(),
+        'msg': 'Hello from Backend!',
+        's': 'backend-container'
     })
 
 if __name__ == '__main__':

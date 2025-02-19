@@ -1,13 +1,16 @@
 from mitmproxy import ctx, http
 import json
+import gemini
 def response(flow: http.HTTPFlow) -> None:
+    with open("api_schema.json", "r") as file:
+        api_schema = json.load(file)
     try:
+        ctx.log.info(f"original msg: {flow.response.content.decode('utf-8')}")
         if flow.response and flow.response.content:
             response_data = json.loads(flow.response.content)
-            if "message" in response_data:
-                response_data["message"] = "This message has been intercepted by the proxy"
-                flow.response.content = json.dumps(response_data).encode()
-            ctx.log.info(f"Response from backend: {flow.response.content.decode('utf-8')}")
+            response_data = gemini.correct_json(api_schema, response_data)
+            flow.response.content = json.dumps(json.loads(response_data)).encode()
+            ctx.log.info(f"new intercepted msg : {flow.response.content.decode('utf-8')}")
     except Exception as e:
         ctx.log.error(f"Error logging response: {e}")
 

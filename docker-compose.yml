@@ -15,12 +15,14 @@ services:
     build:
       context: ./proxy
     volumes:
-      - ./proxy/scripts:/scripts
+      - ./proxy:/proxy
     ports:
       - "8091:8091"  # Proxy port
       - "8092:8092"  # Web interface
     networks:
       - container-net
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
 
   backend:
     build:
