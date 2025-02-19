@@ -15,7 +15,7 @@ services:
     build:
       context: ./proxy
     volumes:
-      - ./proxy:/proxy
+      - ./proxy/scripts:/scripts
     ports:
       - "8091:8091"  # Proxy port
       - "8092:8092"  # Web interface
