@@ -10,6 +10,7 @@ app = Flask(__name__)
 
 # Use environment variable for backend URL with fallback
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:5100')
+PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
 
 @app.route('/')
 def index():

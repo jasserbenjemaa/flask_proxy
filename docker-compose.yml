@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  frontend:
+  consumer:
     build:
-      context: ./frontend
+      context: ./consumer
     networks:
       - container-net
     depends_on:
