@@ -16,7 +16,7 @@ PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
 def index():
     # Configure the proxy for both HTTP and HTTPS
     proxies = {
-        'http': 'http://mitm:8091',
+        'http':PROXY_URL,
     }
 
     try:
