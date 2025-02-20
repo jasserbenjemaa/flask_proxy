@@ -21,8 +21,6 @@ services:
       - "8092:8092"  # Web interface
     networks:
       - container-net
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
 
   backend:
     build:
@@ -31,6 +29,15 @@ services:
       - container-net
     ports:
       - "5100:5100"  # Web interface
+  llm:
+    build:
+      context: ./llm
+    networks:
+      - container-net
+    ports:
+      - "5000:5000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
 
 networks:
   container-net:

@@ -7,8 +7,8 @@ app = Flask(__name__)
 def get_time():
     return jsonify({
         'time': datetime.datetime.utcnow().isoformat(),
-        'msg': 'Hello from Backend!',
-        's': 'backend-container'
+        'message': 'Hello from Backend!',
+        'source': 'backend-container'
     })
 
 if __name__ == '__main__':
