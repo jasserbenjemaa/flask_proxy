@@ -1,14 +1,20 @@
 from mitmproxy import ctx, http
 import json
+import httpx
 def response(flow: http.HTTPFlow) -> None:
     try:
+
         ctx.log.info(f"original msg: {flow.response.content.decode('utf-8')}")
+
         if flow.response and flow.response.content:
+            response = httpx.get("http://llm:5000/api");
+            response.raise_for_status()
+
             response_data = json.loads(flow.response.content)
-            if"message" in response_data:
-                response_data["message"] = "Hello from jasser!"
-            flow.response.content = json.dumps(response_data).encode()
+            #response_data["message"] = "Hello from jasser!"
+            flow.response.content = json.dumps(response.json()).encode()
             ctx.log.info(f"new intercepted msg : {flow.response.content.decode('utf-8')}")
+
     except Exception as e:
         ctx.log.error(f"Error logging response: {e}")
 
