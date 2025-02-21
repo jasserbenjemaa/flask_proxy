@@ -18,7 +18,6 @@ services:
       - ./proxy:/proxy
     ports:
       - "8091:8091"  # Proxy port
-      - "8092:8092"  # Web interface
     networks:
       - container-net
 
@@ -42,6 +41,3 @@ services:
 networks:
   container-net:
     driver: bridge
-
-volumes:
-  mitm_logs:
