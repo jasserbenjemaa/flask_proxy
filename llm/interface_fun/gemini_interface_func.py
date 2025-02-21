@@ -28,9 +28,8 @@ def clean_json_string(json_str):
 def correct_api(api,api_schema):
 
   prompt = f"""
-  i want you to change the value of each key but don't touch the keys give a random name random age:
+  add to this api random inforamtions keep the old ones and add on it:
   api = {api}
-  Return: list[Recipe]
   """
 
   chat_session = model.start_chat()

@@ -1,10 +1,6 @@
-from flask import Flask, jsonify
+from flask import Flask
 import requests
 import os
-import urllib3
-
-# Disable SSL warnings since we're using verify=False
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 app = Flask(__name__)
 

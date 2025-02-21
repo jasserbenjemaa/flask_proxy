@@ -1,13 +1,10 @@
 FROM python:3.11-slim
 
 
-WORKDIR /app
-ADD ./ /app
+WORKDIR /proxy
+COPY intercept.py .
 
 RUN apt-get update
-RUN apt-get upgrade -qy
-
-RUN pip install --upgrade pip
 RUN pip install mitmproxy httpx
 
 CMD ["mitmdump", "-p","8091","-s","intercept.py"]
