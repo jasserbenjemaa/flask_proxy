@@ -14,26 +14,9 @@ PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
 proxies = {
         'http':PROXY_URL,
     }
+
+
 @app.route('/')
-def index():
-    # Configure the proxy for both HTTP and HTTPS
-
-
-    try:
-        response = requests.get(
-            f"{BACKEND_URL}/api/time",
-            proxies=proxies,
-        )
-        response.raise_for_status()  # Raise exception for bad status codes
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        return jsonify({
-            'error': 'Request failed',
-            'message': str(e),
-            'status': 'error'
-        }), 500
-
-@app.route('/send')
 def send_json():
     data = {'name':'Jasser', 'age': 21,'message':'req from the consumer'}
     response = requests.post(

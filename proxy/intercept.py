@@ -15,7 +15,5 @@ def request(flow: http.HTTPFlow) -> None:
 
                 flow.request.content = json.dumps(res_from_llm.json()).encode('utf-8')
 
-
-
         except Exception as e:
             ctx.log.error(f"Error modifying request: {e}")
