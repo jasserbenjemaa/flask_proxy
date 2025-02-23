@@ -17,7 +17,7 @@ valid_api={
     "source": "API Gateway"
 }
 
-invald_api = {
+invalid_api = {
     "received data from the consumer": "Invalid format",
     "message": 200,
     "source": {"name":"jasser"}
@@ -27,6 +27,15 @@ invald_api = {
 proxies = {
         'http':PROXY_URL,
     }
+
+@app.route('/send')
+def send():
+    response = requests.post(
+        f"{PROXY_URL}/receive",
+        json=invalid_api
+        )
+    return response.json()
+
 
 
 @app.route('/')

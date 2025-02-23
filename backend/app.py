@@ -3,7 +3,7 @@ import datetime
 
 app = Flask(__name__)
 
-@app.route('/api/time')
+@app.route('/')
 def get_time():
     return jsonify({
         'time': datetime.datetime.utcnow().isoformat(),
