@@ -5,6 +5,7 @@ WORKDIR /proxy
 COPY intercept.py .
 
 RUN apt-get update
-RUN pip install mitmproxy httpx
+RUN pip install mitmproxy httpx jsonschema
+
 
 CMD ["mitmdump", "-p","8091","-s","intercept.py"]
