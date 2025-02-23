@@ -19,6 +19,8 @@ services:
       - "8091:8091"  # Proxy port
     networks:
       - container-net
+    depends_on:
+      - llm
 
   backend:
     build:
@@ -36,8 +38,6 @@ services:
       - "5000:5000"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-    depends_on:
-      - mitm
 
 networks:
   container-net:
