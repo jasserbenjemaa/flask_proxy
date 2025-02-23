@@ -7,6 +7,23 @@ app = Flask(__name__)
 # Use environment variable for backend URL with fallback
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:5100')
 PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
+
+valid_api={
+    "received data from the consumer": {
+        "id": 123,
+        "name": "Jasser"
+    },
+    "message": "Request processed successfully",
+    "source": "API Gateway"
+}
+
+invald_api = {
+    "received data from the consumer": "Invalid format",
+    "message": 200,
+    "source": {"name":"jasser"}
+}
+
+
 proxies = {
         'http':PROXY_URL,
     }
@@ -14,11 +31,10 @@ proxies = {
 
 @app.route('/')
 def send_json():
-    data = {'name':'Jasser', 'age': 21,'message':'req from the consumer'}
     response = requests.post(
         f"{BACKEND_URL}/receive",
         proxies=proxies,
-        json=data
+        json=valid_api
         )
     return response.json()
 

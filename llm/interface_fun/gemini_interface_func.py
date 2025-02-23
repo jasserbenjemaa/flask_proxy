@@ -21,8 +21,9 @@ model = genai.GenerativeModel(
 def correct_api(api,api_schema):
 
   prompt = f"""
-  add to this api random inforamtions keep the old ones and add on it add at least 6 more fields:
-  api = {api}
+  I want the invalid api to be compatible with the api schema. I don't want any data lost :
+  invalid api = {api}
+  api schema = {api_schema}
   """
 
   chat_session = model.start_chat()
