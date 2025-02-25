@@ -28,7 +28,7 @@ proxies = {
         'http':PROXY_URL,
     }
 
-@app.route('/send')
+@app.route('/invalid')
 def send():
     response = requests.post(
         f"{PROXY_URL}/receive",
@@ -38,7 +38,7 @@ def send():
 
 
 
-@app.route('/')
+@app.route('/valid')
 def send_json():
     response = requests.post(
         f"{BACKEND_URL}/receive",

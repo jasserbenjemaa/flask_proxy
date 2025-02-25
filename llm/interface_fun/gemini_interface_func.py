@@ -1,7 +1,6 @@
 import os
 import google.generativeai as genai
 import json
-import re
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 sys_instruct="return json object"
 # Create the model

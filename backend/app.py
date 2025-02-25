@@ -3,15 +3,6 @@ import datetime
 
 app = Flask(__name__)
 
-@app.route('/')
-def get_time():
-    return jsonify({
-        'time': datetime.datetime.utcnow().isoformat(),
-        'message': 'Hello from Backend!',
-        'source': 'backend-container'
-    })
-
-
 
 @app.route('/receive',methods=['POST'])
 def receive_json():
