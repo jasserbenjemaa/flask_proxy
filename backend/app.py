@@ -1,13 +1,17 @@
 from flask import Flask, jsonify ,request
-import datetime
-
+import traceback
 app = Flask(__name__)
 
 
 @app.route('/receive',methods=['POST'])
 def receive_json():
-    data = request.get_json()
-    return jsonify({"received data from the consumer":data,"message":"Hello from Backend!","source":"backend-container"})
+    try:
+        data = request.get_json()
+        return jsonify({"id":data['nme'],"msg":data["message"],"source":data["source"]})
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        return jsonify({"traceback":error_trace}), 400
+
 
 
 if __name__ == '__main__':

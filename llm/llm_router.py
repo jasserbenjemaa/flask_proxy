@@ -74,7 +74,7 @@ class LLMConfig:
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     max_retries=self.max_retries,
-                )
+                )#.with_structured_output(method="json_mode", include_raw=True)
             elif self.provider == "openai":
                 os.environ["OPENAI_API_KEY"] = self.api_key or os.getenv("OPENAI_API_KEY")
                 llm = OpenAI(
@@ -108,50 +108,17 @@ class LLMConfig:
                     temperature=self.temperature,
                     max_output_tokens=self.max_tokens,
                     convert_system_message_to_human=True,  # Gemini doesn't support system messages natively
+                    #structured_llm = llm.with_structured_output(method="json_mode", include_raw=True)
                 )
 
-            # Add JSON formatting based on provider capabilities
-            if self.provider in ["openai", "azure"]:
-                # OpenAI and Azure support native JSON mode
-                llm = llm.with_structured_output(method="json_mode")
             else:
-                # For other providers, use the pydantic method
-                from pydantic import BaseModel, Field
-                from typing import Dict, Any
+                raise ValueError(f"Unsupported LLM provider: {self.provider}")
 
-                class JSONResponse(BaseModel):
-                    """Dynamic JSON response structure"""
-                    content: Dict[str, Any] = Field(description="The content of the response in JSON format")
-
-                # Add instructions to the system message to enforce JSON output
-                json_instructions = """
-                You must respond with valid JSON objects only.
-                Your entire response should be a properly formatted JSON object.
-                Do not include any text before or after the JSON.
-                """
-
-                # Create a wrapper for the LLM that enforces JSON output
-                from langchain.prompts import ChatPromptTemplate
-                from langchain.output_parsers import PydanticOutputParser
-
-                parser = PydanticOutputParser(pydantic_object=JSONResponse)
-
-                # Create a chain that enforces JSON output
-                prompt = ChatPromptTemplate.from_messages([
-                    ("system", self.system_message + "\n" + json_instructions if self.system_message else json_instructions),
-                    ("human", "{input}")
-                ])
-
-                llm_chain = prompt | llm | parser
-
-                # Return the chain instead of the raw LLM
-                return llm_chain
 
             return llm
-
         except Exception as e:
             print(f"Error creating LLM: {e}")
-            raise
+            return None
 
 def count_tokens(messages: List[BaseMessage]) -> int:
     """Count tokens in messages"""

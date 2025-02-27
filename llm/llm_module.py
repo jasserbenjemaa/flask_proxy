@@ -33,8 +33,8 @@ def get_price_for_model(provider: str, model_name: str) -> float:
             "gpt-3.5-turbo": 0.5 / 1000,
         },
         "gemini":{
-            "gemini-2.0-flash":0.1,
-            "gemini-2.0-flash-lite":0.075,
+            "gemini-2.0-flash":0.0,
+            "gemini-2.0-flash-lite":0.0,
             "gemini-2.0-pro-exp-02-05":0,
             "gemini-2.0-flash-thinking-exp-01-21":0,
         }
@@ -162,7 +162,6 @@ def send_prompt(
         "cost_info": cost_info,
         "raw_response": response
     }
-
 
 
 def save_costs():

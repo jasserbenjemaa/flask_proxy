@@ -9,10 +9,8 @@ BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:5100')
 PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
 
 valid_api={
-    "received data from the consumer": {
-        "id": 123,
-        "name": "Jasser"
-    },
+    "id": 123,
+    "name": "Jasser",
     "message": "Request processed successfully",
     "source": "API Gateway"
 }
