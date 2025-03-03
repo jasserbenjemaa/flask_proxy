@@ -1,4 +1,3 @@
-
 services:
   consumer:
     build:
@@ -12,11 +11,12 @@ services:
 
   mitm:
     build:
-      context: ./proxy
+      context: ./mitm
     volumes:
-      - ./proxy:/proxy
+      - ./mitm:/mitm
+      - ./llm/api_correction_scripts:/mitm/api_correction_scripts
     ports:
-      - "8091:8091"  # Proxy port
+      - "8091:8091" # Proxy port
     networks:
       - container-net
     depends_on:
@@ -28,7 +28,7 @@ services:
     networks:
       - container-net
     ports:
-      - "5100:5100"  # Web interface
+      - "5100:5100" # Web interface
   llm:
     build:
       context: ./llm
@@ -38,6 +38,7 @@ services:
       - "5000:5000"
     volumes:
       - ./llm:/llm
+      - ./llm/api_correction_scripts:/llm/api_correction_scripts
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}

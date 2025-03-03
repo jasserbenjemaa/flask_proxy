@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 
-WORKDIR /proxy
+WORKDIR /mitm
 COPY . .
 
 RUN apt-get update

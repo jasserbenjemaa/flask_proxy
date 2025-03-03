@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import threading
+import traceback
 import llm_module  # Import the module we created earlier
 
 app = Flask(__name__)
@@ -8,15 +9,20 @@ app = Flask(__name__)
 def generate():
     """Generate a response to a single prompt"""
     try:
-        data = request.json
 
-        # Extract parameters with defaults
-        provider = data.get('provider', 'anthropic')
-        model = data.get('model')
-        prompt = data.get('prompt')
-        system_message = data.get('system_message')
-        temperature = float(data.get('temperature', 0.7))
-        max_tokens = int(data.get('max_tokens', 1000))
+        data = request.get_json()
+        backend_error = data["backend_error"]
+        client_req = data["client_req"]
+
+        prompt=f"this error {backend_error} caused by this api request from the client {client_req}"
+        system_message = """your goal is to give me python function named 'fix_api'
+        the function take dict and return corrected one to prevent the error i don't want any data lost
+        don't add any thing or importing just the code without Docstring"""
+
+        provider = "gemini"
+        model = "gemini-2.0-flash-lite"
+        temperature = 0.4
+        max_tokens = 8000
 
 
         # Validate required parameters
@@ -45,6 +51,10 @@ def generate():
 
         # Save costs asynchronously
         #threading.Thread(target=llm_module.save_costs).start()
+        with open('./api_correction_scripts/client.py','w') as f:
+            from markdown_to_text import markdown_to_text
+            llm_formated_result= markdown_to_text(result["content"])
+            f.write(llm_formated_result)
 
         # Return response
         return jsonify({
@@ -53,7 +63,8 @@ def generate():
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        error_trace = traceback.format_exc()
+        return jsonify({"traceback":error_trace}), 500
 
 @app.route('/health', methods=['POST'])
 def health_check():

@@ -7,7 +7,7 @@ app = Flask(__name__)
 def receive_json():
     try:
         data = request.get_json()
-        return jsonify({"id":data['nme'],"msg":data["message"],"source":data["source"]})
+        return jsonify({"id":data['name'],"msg":data["message"],"source":data["source"]})
     except Exception as e:
         error_trace = traceback.format_exc()
         return jsonify({"traceback":error_trace}), 400
