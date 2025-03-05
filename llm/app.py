@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
-import threading
 import traceback
+import os
 import llm_module  # Import the module we created earlier
 
 app = Flask(__name__)
@@ -21,7 +21,7 @@ def generate():
 
         provider = "gemini"
         model = "gemini-2.0-flash-lite"
-        temperature = 0.4
+        temperature = 0.7
         max_tokens = 8000
 
 
@@ -51,14 +51,24 @@ def generate():
 
         # Save costs asynchronously
         #threading.Thread(target=llm_module.save_costs).start()
+
+
         with open('./api_correction_scripts/client.py','w') as f:
             from markdown_to_text import markdown_to_text
             llm_formated_result= markdown_to_text(result["content"])
             f.write(llm_formated_result)
 
+        try:
+            import api_correction_scripts.client
+            if hasattr(api_correction_scripts.client, "fix_api"):
+                fixed_api = api_correction_scripts.client.fix_api(client_req)
+        except Exception as e:
+            error_trace = traceback.format_exc()
+            return jsonify({"error": f"{error_trace}"}), 500
         # Return response
+        print(fixed_api)
         return jsonify({
-            "response": result["content"],
+            "response":fixed_api,
             #"cost_info": result["cost_info"]
         })
 
