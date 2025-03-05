@@ -11,8 +11,8 @@ PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
 valid_api={
     "id": 123,
     "nme": "Jasser",
-    "message": "Request processed successfully",
-    "source": "API Gateway"
+    "m": "Request processed successfully",
+    "srce": "API Gateway"
 }
 
 invalid_api = {

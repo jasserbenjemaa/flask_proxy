@@ -5,7 +5,7 @@ services:
     networks:
       - container-net
     volumes:
-      - ./consumer:/consumer
+      - ./consumer:/app
     depends_on:
       - mitm
     ports:
@@ -28,7 +28,7 @@ services:
     build:
       context: ./backend
     volumes:
-      - ./backend:/backend
+      - ./backend:/app
     networks:
       - container-net
     ports:

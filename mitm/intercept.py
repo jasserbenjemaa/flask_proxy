@@ -2,21 +2,21 @@ from mitmproxy import ctx, http  # type: ignore
 import traceback
 import json
 import httpx  # type: ignore
-import importlib
+import os
+import subprocess
 
 
 def fix_api(api):
     try:
-        import api_correction_scripts.client
         ctx.log.info(f"Original request: {api}")
 
-        if hasattr(api_correction_scripts.client, "fix_api"):
-            importlib.reload(api_correction_scripts.client)
-            fixed_api = api_correction_scripts.client.fix_api(api)
+        if os.path.exists("api_correction_scripts/client.py"):
+            fixed_api = subprocess.run(["python3", "api_correction_scripts/client.py", json.dumps(api)], capture_output=True)
+            fixed_api = json.loads(fixed_api.stdout)
             ctx.log.info(f"Fixed request: {fixed_api}")
             return fixed_api
         else:
-            ctx.log.info("fix_api function doesn't exist in api_correction_scripts")
+            ctx.log.info("script not found")
     except Exception as e:
         error_trace = traceback.format_exc()
         ctx.log.error(f"Error in fix_api: {error_trace}")
@@ -42,7 +42,7 @@ def response(flow: http.HTTPFlow) -> None:
 
     try:
         # Only process specific status codes
-        if flow.response.status_code in [400, 422, 200]:
+        if flow.response.status_code in [400, 422]:
             ctx.log.info(f"Intercepted message: {flow.response.content.decode('utf-8')} || Status code: {flow.response.status_code}")
 
             # Parse backend error and original client request
@@ -85,7 +85,6 @@ def response(flow: http.HTTPFlow) -> None:
                         )
                     backend_error=response.text
 
-                    ctx.log.info(f"backend error: {backend_error} || Status code: {response.status_code}")
                     # Log the response status
                     ctx.log.info(f"Attempt {attempt + 1}/3 - Response status: {response.status_code}____________________________________________________")
 
@@ -93,7 +92,6 @@ def response(flow: http.HTTPFlow) -> None:
                     if response.status_code not in [400, 422]:
                         flow.response.content = response.content
                         break
-
 
 
                 except Exception as attempt_error:

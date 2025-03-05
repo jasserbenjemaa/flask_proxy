@@ -14,10 +14,15 @@ def generate():
         backend_error = data["backend_error"]
         client_req = data["client_req"]
 
-        prompt=f"this error {backend_error} caused by this api request from the client {client_req}"
-        system_message = """your goal is to give me python function named 'fix_api'
-        the function take dict and return corrected one to prevent the error i don't want any data lost
-        don't add any thing or importing just the code without Docstring"""
+        prompt = f"""this error {backend_error} was caused by this API request from the client: {client_req}.
+
+        Generate a complete Python script that:
+        - Takes a JSON dictionary as an argument from the command line.
+        - Processes the input and corrects it to prevent the error.
+        - Prints the corrected dictionary as a JSON string.
+        - Does not lose any data.
+
+        Your output should be a valid Python script. Do not include explanations, comments, or import statements—just the raw script."""
 
         provider = "gemini"
         model = "gemini-2.0-flash-lite"
@@ -45,7 +50,7 @@ def generate():
         result = llm_module.send_prompt(
             llm=llm,
             prompt=prompt,
-            system_message=system_message,
+            system_message="",
             #token_price=token_price
         )
 
