@@ -107,7 +107,6 @@ class LLMConfig:
                     model=self.model_name,
                     temperature=self.temperature,
                     max_output_tokens=self.max_tokens,
-                    convert_system_message_to_human=True,  # Gemini doesn't support system messages natively
                     #structured_llm = llm.with_structured_output(method="json_mode", include_raw=True)
                 )
 

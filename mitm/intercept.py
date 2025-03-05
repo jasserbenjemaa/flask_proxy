@@ -2,6 +2,7 @@ from mitmproxy import ctx, http  # type: ignore
 import traceback
 import json
 import httpx  # type: ignore
+import importlib
 
 
 def fix_api(api):
@@ -10,6 +11,7 @@ def fix_api(api):
         ctx.log.info(f"Original request: {api}")
 
         if hasattr(api_correction_scripts.client, "fix_api"):
+            importlib.reload(api_correction_scripts.client)
             fixed_api = api_correction_scripts.client.fix_api(api)
             ctx.log.info(f"Fixed request: {fixed_api}")
             return fixed_api
@@ -21,12 +23,7 @@ def fix_api(api):
     return api
 
 def request(flow: http.HTTPFlow) -> None:
-    """
-    Intercept and potentially modify the outgoing request.
 
-    Args:
-        flow (http.HTTPFlow): The HTTP flow to be processed
-    """
     global original_client_flow
     original_client_flow = flow.copy()
 
@@ -42,12 +39,7 @@ def request(flow: http.HTTPFlow) -> None:
         ctx.log.error(f"Error in request interception: {error_trace}")
 
 def response(flow: http.HTTPFlow) -> None:
-    """
-    Intercept and handle backend responses, attempting to resolve errors.
 
-    Args:
-        flow (http.HTTPFlow): The HTTP flow to be processed
-    """
     try:
         # Only process specific status codes
         if flow.response.status_code in [400, 422, 200]:
@@ -78,13 +70,7 @@ def response(flow: http.HTTPFlow) -> None:
                     # Prepare headers with correct Content-Length
                     headers = dict(original_client_flow.request.headers)
 
-                    # Create a fixed payload
-                    fixed_payload = {
-                        "name": "ajsser",
-                        "id": 123,
-                        "message": "msg",
-                        "source": "src"
-                    }
+
                     fixed_client_req_str = json.dumps(fixed_client_req)
                     headers['Content-Length'] = str(len(fixed_client_req_str.encode('utf-8')))
 

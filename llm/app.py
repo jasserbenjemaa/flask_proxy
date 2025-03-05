@@ -58,17 +58,9 @@ def generate():
             llm_formated_result= markdown_to_text(result["content"])
             f.write(llm_formated_result)
 
-        try:
-            import api_correction_scripts.client
-            if hasattr(api_correction_scripts.client, "fix_api"):
-                fixed_api = api_correction_scripts.client.fix_api(client_req)
-        except Exception as e:
-            error_trace = traceback.format_exc()
-            return jsonify({"error": f"{error_trace}"}), 500
         # Return response
-        print(fixed_api)
         return jsonify({
-            "response":fixed_api,
+            "response":result["content"],
             #"cost_info": result["cost_info"]
         })
 

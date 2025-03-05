@@ -1,14 +1,11 @@
 def fix_api(data):
     corrected_data = {}
-    if 'name' in data:
-        corrected_data['id'] = data['name']
+    if 'nme' in data:
+        corrected_data['name'] = data['nme']
     elif 'id' in data:
-        corrected_data['id'] = data['id']
-    
+        corrected_data['name'] = str(data['id'])
     if 'message' in data:
-        corrected_data['msg'] = data['message']
-    
+        corrected_data['message'] = data['message']
     if 'source' in data:
         corrected_data['source'] = data['source']
-        
     return corrected_data
