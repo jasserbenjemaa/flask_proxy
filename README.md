@@ -29,7 +29,8 @@ docker compose up --build
 | Method | Endpoint  | Description |
 |--------|----------|-------------|
 | POST   | `/valid`   | Processes valid API requests |
-| POST   | `/invalid` | Handles invalid API requests |
+| POST   | `/invalid` | send invalid API requests |
+| POST   | `/invalid_proxy` | send invalid API requests and let the proxy make a script correcting it |
 
 ## LLM Provider Configuration
 This project uses **Gemini** by default. If you want to change the provider, go to `llm/app.py`, find the provider and model, and modify it to one of the following:
