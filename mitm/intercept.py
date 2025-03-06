@@ -2,25 +2,7 @@ from mitmproxy import ctx, http  # type: ignore
 import traceback
 import json
 import httpx  # type: ignore
-import os
-import subprocess
-
-
-def fix_api(api):
-    try:
-        ctx.log.info(f"Original request: {api}")
-
-        if os.path.exists("api_correction_scripts/client.py"):
-            fixed_api = subprocess.run(["python3", "api_correction_scripts/client.py", json.dumps(api)], capture_output=True)
-            fixed_api = json.loads(fixed_api.stdout)
-            ctx.log.info(f"Fixed request: {fixed_api}")
-            return fixed_api
-        else:
-            ctx.log.info("script not found")
-    except Exception as e:
-        error_trace = traceback.format_exc()
-        ctx.log.error(f"Error in fix_api: {error_trace}")
-    return api
+from utils import fix_api, get_file_path
 
 def request(flow: http.HTTPFlow) -> None:
 
@@ -31,8 +13,8 @@ def request(flow: http.HTTPFlow) -> None:
         if flow.request.content:
             # Parse and potentially fix the request content
             req_content = json.loads(flow.request.content)
-
-            fixed_req_content = fix_api(req_content)
+            file_path = get_file_path(flow.request.url, flow.request.method, req_content)
+            fixed_req_content = fix_api(req_content, file_path)
             flow.request.content = json.dumps(fixed_req_content).encode("utf-8")
     except Exception as e:
         error_trace = traceback.format_exc()
@@ -48,9 +30,11 @@ def response(flow: http.HTTPFlow) -> None:
             # Parse backend error and original client request
             backend_error = json.loads(flow.response.content)
             client_req = json.loads(original_client_flow.request.content)
+            file_path = get_file_path(original_client_flow.request.url, original_client_flow.request.method, client_req)
 
             # Attempt to resolve the error with multiple tries
             for attempt in range(3):
+
 
                 try:
                     # Request LLM assistance for error correction
@@ -59,13 +43,15 @@ def response(flow: http.HTTPFlow) -> None:
                             "http://llm:5000/api",
                             json={
                                 "client_req": client_req,
-                                "backend_error": backend_error
+                                "backend_error": backend_error,
+                                "file_path":file_path
+
                             },
                             timeout=40.0
                         )
 
                     # Fix the client request
-                    fixed_client_req = fix_api(client_req)
+                    fixed_client_req = fix_api(client_req,file_path)
 
                     # Prepare headers with correct Content-Length
                     headers = dict(original_client_flow.request.headers)

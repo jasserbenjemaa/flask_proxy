@@ -13,6 +13,7 @@ def generate():
         data = request.get_json()
         backend_error = data["backend_error"]
         client_req = data["client_req"]
+        file_path = data["file_path"]
 
         prompt = f"""this error {backend_error} was caused by this API request from the client: {client_req}.
 
@@ -58,7 +59,7 @@ def generate():
         #threading.Thread(target=llm_module.save_costs).start()
 
 
-        with open('./api_correction_scripts/client.py','w') as f:
+        with open(f'./{file_path}','w') as f:
             from markdown_to_text import markdown_to_text
             llm_formated_result= markdown_to_text(result["content"])
             f.write(llm_formated_result)
