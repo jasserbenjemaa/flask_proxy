@@ -10,8 +10,9 @@ def get_file_path(server_url, method,client_req):
     str_key=""
     for key in sorted(client_req.keys()):
         str_key+=key
-    file_name=f"{str(server_url).replace('http://','').replace('/','_')}_{method}_{hashlib.md5(str_key.encode()).hexdigest()}"
-    return f"api_correction_scripts/{file_name}.py"
+    file_name=f"{str(server_url).replace('http://','').replace('/','_')}_{method}_{str_key}"
+    hash_file_name = hashlib.md5(file_name.encode()).hexdigest()
+    return f"api_correction_scripts/{hash_file_name}.py"
 
 def fix_api(api,file_path):
     try:

@@ -11,38 +11,49 @@ PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
 
 
 invalid_api = {
-    "received data from the consumer": "Invalid format",
-    "message": 200,
-    "source": {"name":"jasser"}
-}
+        "id":123,
+        "nme": "Jasser",
+        "messages": "Hello",
+        "sourc": "consumer",
+        "ae":22
+    }
 
-
+valid_api = {
+        "id":123,
+        "name": "Jasser",
+        "message": "Hello",
+        "source": "consumer",
+        "age":22
+    }
 proxies = {
         'http':PROXY_URL,
     }
 
-@app.route('/invalid')
+@app.route('/valid')
 def send():
     response = requests.post(
         f"{PROXY_URL}/receive",
-        json=invalid_api
+        json=valid_api
         )
     return response.json()
 
 
 
-@app.route('/')
-def send_json():
-    valid_api = {
-        "id":123,
-        "nme": "Jasser",
-        "meage": "Hello",
-        "source": "consumer"
-    }
+@app.route('/invalid')
+def valid():
+
+    response = requests.post(
+        f"{BACKEND_URL}/receive",
+        json=invalid_api
+        )
+    return response.json()
+
+@app.route('/invalid_proxy')
+def invalid():
     response = requests.post(
         f"{BACKEND_URL}/receive",
         proxies=proxies,
-        json=valid_api
+        json=invalid_api
         )
     return response.json()
 
