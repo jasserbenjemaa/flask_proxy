@@ -1,10 +1,8 @@
 # Flask Proxy
 
 ## Description
-Flask Proxy is a project that integrates **mitmproxy** with Flask to intercept API requests, analyze their parameters, consult an LLM for corrections, and forward the corrected requests to the server. It helps in debugging and fixing incorrect API parameters dynamically.
+Flask Proxy is a project that integrates **mitmproxy** with Flask to intercept API requests, analyze their parameters, consult an LLM for corrections, and forward the corrected requests to the server. It helps in fixing incorrect API parameters dynamically.
 
-## Features
-None
 
 ## Installation
 1. Clone the repository:
