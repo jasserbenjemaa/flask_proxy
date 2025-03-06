@@ -25,17 +25,14 @@ def response(flow: http.HTTPFlow) -> None:
     try:
         # Only process specific status codes
         if flow.response.status_code in [400, 422]:
-            ctx.log.info(f"Intercepted message: {flow.response.content.decode('utf-8')} || Status code: {flow.response.status_code}")
 
             # Parse backend error and original client request
-            backend_error = json.loads(flow.response.content)
+            backend_errors = {"error0":json.loads(flow.response.content)}
             client_req = json.loads(original_client_flow.request.content)
             file_path = get_file_path(original_client_flow.request.url, original_client_flow.request.method, client_req)
 
             # Attempt to resolve the error with multiple tries
-            for attempt in range(3):
-
-
+            for attempt in range(10):
                 try:
                     # Request LLM assistance for error correction
                     with httpx.Client() as client:
@@ -43,7 +40,7 @@ def response(flow: http.HTTPFlow) -> None:
                             "http://llm:5000/api",
                             json={
                                 "client_req": client_req,
-                                "backend_error": backend_error,
+                                "backend_errors": backend_errors,
                                 "file_path":file_path
 
                             },
@@ -69,10 +66,10 @@ def response(flow: http.HTTPFlow) -> None:
                             cookies=original_client_flow.request.cookies,
                             content=fixed_client_req_str.encode('utf-8')
                         )
-                    backend_error=response.text
+                    backend_errors["error"+str(attempt+1)] = json.loads(response.content)
 
                     # Log the response status
-                    ctx.log.info(f"Attempt {attempt + 1}/3 - Response status: {response.status_code}____________________________________________________")
+                    ctx.log.info(f"Attempt {attempt + 1}/10 - Response status: {response.status_code}____________________________________________________")
 
                     # If successful, update the flow response and break
                     if response.status_code not in [400, 422]:

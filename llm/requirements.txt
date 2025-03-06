@@ -3,9 +3,9 @@ werkzeug==2.0.1
 
 
 python-dotenv>=1.0.0
-#langchain-groq>=0.0.3
-#langchain-openai>=0.0.2
-#langchain-anthropic>=0.1.1
+langchain-groq>=0.0.3
+langchain-openai>=0.0.2
+langchain-anthropic>=0.1.1
 langchain_google_genai
 langchain-core>=0.1.10
 langchain

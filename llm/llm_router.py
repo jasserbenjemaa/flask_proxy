@@ -3,9 +3,9 @@ import json
 from typing import Optional, Tuple, List, Dict
 from dataclasses import dataclass
 from dotenv import load_dotenv
-#from langchain_groq import ChatGroq
-#from langchain_openai import AzureChatOpenAI, OpenAI
-#from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
+from langchain_openai import AzureChatOpenAI, OpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import BaseMessage
 from datetime import datetime
@@ -107,7 +107,6 @@ class LLMConfig:
                     model=self.model_name,
                     temperature=self.temperature,
                     max_output_tokens=self.max_tokens,
-                    #structured_llm = llm.with_structured_output(method="json_mode", include_raw=True)
                 )
 
             else:

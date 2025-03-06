@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import traceback
-import os
 import llm_module  # Import the module we created earlier
 
 app = Flask(__name__)
@@ -11,11 +10,11 @@ def generate():
     try:
 
         data = request.get_json()
-        backend_error = data["backend_error"]
+        backend_errors = data["backend_errors"]
         client_req = data["client_req"]
         file_path = data["file_path"]
 
-        prompt = f"""this error {backend_error} was caused by this API request from the client: {client_req}.
+        prompt = f"""this errors {backend_errors} was caused by this API request from the client: {client_req}.
 
         Generate a complete Python script that:
         - Takes a JSON dictionary as an argument from the command line.

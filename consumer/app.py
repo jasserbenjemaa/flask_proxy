@@ -8,12 +8,7 @@ app = Flask(__name__)
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:5100')
 PROXY_URL= os.getenv('PROXY_URL', 'http://mitm:8091')
 
-valid_api={
-    "id": 123,
-    "nme": "Jasser",
-    "m": "Request processed successfully",
-    "srce": "API Gateway"
-}
+
 
 invalid_api = {
     "received data from the consumer": "Invalid format",
@@ -36,8 +31,14 @@ def send():
 
 
 
-@app.route('/valid')
+@app.route('/')
 def send_json():
+    valid_api = {
+        "id":123,
+        "nme": "Jasser",
+        "meage": "Hello",
+        "source": "consumer"
+    }
     response = requests.post(
         f"{BACKEND_URL}/receive",
         proxies=proxies,
