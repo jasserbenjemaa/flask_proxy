@@ -40,7 +40,7 @@ proxies = {'http': PROXY_URL}
 @app.route('/send_with_proxy', methods=['POST'])
 def send_with_proxy():
     """
-    Send data through the proxy to the backend
+    Send data through the mitmproxy to the backend
     ---
     parameters:
       - name: data
@@ -76,7 +76,7 @@ def send_with_proxy():
 @app.route('/send_direct', methods=['POST'])
 def send_direct():
     """
-    Send data directly to the backend without proxy
+    Send data directly to the backend without mitmproxy
     ---
     parameters:
       - name: data

@@ -26,7 +26,7 @@ def generate():
         Your output should be a valid Python script. Do not include explanations, comments, or import statements—just the raw script."""
 
         provider = "gemini"
-        model = "gemini-2.0-flash-lite"
+        model = "gemini-2.0-flash"
         temperature =1
         max_tokens = 8000
 
