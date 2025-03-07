@@ -66,7 +66,9 @@ def response(flow: http.HTTPFlow) -> None:
                             cookies=original_client_flow.request.cookies,
                             content=fixed_client_req_str.encode('utf-8')
                         )
-                    backend_errors["error"+str(attempt+1)] = json.loads(response.content)
+                    response_content = json.loads(response.content)
+                    if response_content not in backend_errors.values():
+                        backend_errors["error"+str(attempt+1)] = response_content
 
                     # Log the response status
                     ctx.log.info(f"Attempt {attempt + 1}/10 - Response status: {response.status_code}____________________________________________________")

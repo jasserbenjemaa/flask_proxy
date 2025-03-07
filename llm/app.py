@@ -20,13 +20,14 @@ def generate():
         - Takes a JSON dictionary as an argument from the command line.
         - Processes the input and corrects it to prevent the error.
         - Prints the corrected dictionary as a JSON string.
+        - I don't want None values the data exist but the key may have a slightly diffrent name.
         - Does not lose any data.
 
         Your output should be a valid Python script. Do not include explanations, comments, or import statements—just the raw script."""
 
         provider = "gemini"
         model = "gemini-2.0-flash-lite"
-        temperature = 0.7
+        temperature =1
         max_tokens = 8000
 
 

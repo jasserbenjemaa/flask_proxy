@@ -50,6 +50,16 @@ services:
       - AZURE_OPENAI_API_KEY
       - AZURE_OPENAI_API_BASE
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    environment:
+      SWAGGER_JSON_URL: "http://localhost:3000/swagger.json"
+    depends_on:
+      - consumer
+    networks:
+      - container-net
 
 networks:
   container-net:
