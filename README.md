@@ -24,8 +24,12 @@ To run the project, use:
 ```sh
 docker compose up --build
 ```
+
+
 Swagger UI
 Access the API documentation and interact with the API using Swagger UI at: http://localhost:8080
+
+
 
 ## API Endpoints
 | Method | Endpoint  | Description |
