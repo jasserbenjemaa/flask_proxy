@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Form</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .form-container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: bold;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        margin-top: 10px;
+      }
+      .alert {
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: none;
+      }
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <form id="contactForm" method="POST" action="/submit">
+        <div class="form-group">
+          <label><i class="fas fa-user"></i> Name</label>
+          <input type="text" name="names" placeholder="Name" required />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-envelope"></i> Email</label>
+          <input type="email" name="email" placeholder="Email" required />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-message"></i> Message</label>
+          <textarea
+            name="message"
+            placeholder="Message"
+            rows="5"
+            required
+          ></textarea>
+        </div>
+        <button type="submit"><i class="fas fa-paper-plane"></i> Submit</button>
+      </form>
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Submitting...
+      </div>
+      <div class="alert alert-success" id="successAlert">
+        <i class="fas fa-check-circle"></i> Form submitted successfully!
+      </div>
+      <div class="alert alert-error" id="errorAlert">
+        <i class="fas fa-exclamation-circle"></i> An error occurred. Please try
+        again.
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const form = this;
+          const loading = document.querySelector(".loading");
+          const successAlert = document.getElementById("successAlert");
+          const errorAlert = document.getElementById("errorAlert");
+
+          // Hide alerts and show loading
+          successAlert.style.display = "none";
+          errorAlert.style.display = "none";
+          loading.style.display = "block";
+
+          fetch("http://localhost:8091/submit", {
+            // Ensure this URL is correct
+            method: "POST",
+            body: new FormData(form),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              loading.style.display = "none";
+              if (data.status === "success") {
+                successAlert.style.display = "block";
+                form.reset();
+              } else {
+                errorAlert.style.display = "block";
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              loading.style.display = "none";
+              errorAlert.style.display = "block";
+            });
+        });
+    </script>
+  </body>
+</html>
