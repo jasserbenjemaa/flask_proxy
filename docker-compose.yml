@@ -21,8 +21,6 @@ services:
       - "8091:8091" # Proxy port
     networks:
       - container-net
-    depends_on:
-      - llm
 
   backend:
     build:
@@ -33,23 +31,7 @@ services:
       - container-net
     ports:
       - "5100:5100" # Web interface
-  llm:
-    build:
-      context: ./llm
-    networks:
-      - container-net
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./llm:/llm
-      - ./mitm/api_correction_scripts:/llm/api_correction_scripts
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - OPENAI_API_KEY
-      - AZURE_OPENAI_API_KEY
-      - AZURE_OPENAI_API_BASE
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
   swagger-ui:
     image: swaggerapi/swagger-ui
     ports:

@@ -144,7 +144,8 @@ def valid():
 
     response = requests.post(
         f"{BACKEND_URL}/receive",
-        json=invalid_api
+        json=invalid_api,
+        proxies=proxies,
         )
     return response.json()
 

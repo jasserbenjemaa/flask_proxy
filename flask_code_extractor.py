@@ -160,8 +160,8 @@ if __name__ == "__main__":
         directory = input("Enter the path to your Flask codebase: ")
     
     routes_info = parse_flask_codebase(directory)
-    
     # Output to JSON file
+    # TODO make it put it in the llm
     output_file = "flask_routes.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(routes_info, f, indent=4)

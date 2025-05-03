@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Error Log Viewer</title>
+    <style>
+      :root {
+        --color-bg: #f8fafc;
+        --color-text: #1e293b;
+        --color-card: #ffffff;
+        --color-header: #0f172a;
+        --color-border: #e2e8f0;
+        --color-400: #f87171;
+        --color-401: #fb923c;
+        --color-404: #facc15;
+        --color-409: #a3e635;
+        --color-500: #ef4444;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      }
+
+      body {
+        background-color: var(--color-bg);
+        color: var(--color-text);
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      h1 {
+        color: var(--color-header);
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background-color: var(--color-card);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .stat-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card p {
+        color: #64748b;
+        font-size: 1rem;
+      }
+
+      .logs-container {
+        background-color: var(--color-card);
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background-color: #f1f5f9;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .search-box {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        border-radius: 0.25rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--color-border);
+        width: 300px;
+      }
+
+      .search-box input {
+        border: none;
+        outline: none;
+        width: 100%;
+        font-size: 0.875rem;
+        margin-left: 0.5rem;
+      }
+
+      .filters {
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      .filter-btn {
+        background-color: white;
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .filter-btn:hover {
+        background-color: #f8fafc;
+      }
+
+      .filter-btn.active {
+        background-color: #0f172a;
+        color: white;
+        border-color: #0f172a;
+      }
+
+      .logs-list {
+        list-style: none;
+      }
+
+      .log-item {
+        border-bottom: 1px solid var(--color-border);
+        transition: all 0.2s;
+      }
+
+      .log-item:last-child {
+        border-bottom: none;
+      }
+
+      .log-header {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .log-header:hover {
+        background-color: #f8fafc;
+      }
+
+      .endpoint {
+        font-weight: 600;
+        font-size: 1.125rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .status-400 {
+        background-color: rgba(248, 113, 113, 0.1);
+        color: var(--color-400);
+      }
+
+      .status-401 {
+        background-color: rgba(251, 146, 60, 0.1);
+        color: var(--color-401);
+      }
+
+      .status-404 {
+        background-color: rgba(250, 204, 21, 0.1);
+        color: var(--color-404);
+      }
+
+      .status-409 {
+        background-color: rgba(163, 230, 53, 0.1);
+        color: var(--color-409);
+      }
+
+      .status-500 {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--color-500);
+      }
+
+      .toggle-icon {
+        font-size: 1.5rem;
+        transition: transform 0.3s;
+      }
+
+      .log-details {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+        background-color: #f8fafc;
+      }
+
+      .log-details.active {
+        padding: 1.5rem;
+        max-height: 300px;
+      }
+
+      .error-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .error-detail {
+        background-color: white;
+        border-radius: 0.375rem;
+        padding: 1.25rem;
+        border: 1px solid var(--color-border);
+      }
+
+      .error-detail h4 {
+        margin-bottom: 0.75rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .error-detail p {
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 1rem;
+        }
+
+        .controls {
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .search-box {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>API Error Log Viewer</h1>
+      </header>
+
+      <div class="dashboard">
+        <div class="stat-card">
+          <h2 id="total-errors">0</h2>
+          <p>Total Errors</p>
+        </div>
+        <div class="stat-card">
+          <h2 id="critical-errors">0</h2>
+          <p>Critical Errors (5xx)</p>
+        </div>
+        <div class="stat-card">
+          <h2 id="client-errors">0</h2>
+          <p>Client Errors (4xx)</p>
+        </div>
+      </div>
+
+      <div class="logs-container">
+        <div class="controls">
+          <div class="search-box">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="#64748b"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search endpoints..."
+            />
+          </div>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="400">400</button>
+            <button class="filter-btn" data-filter="401">401</button>
+            <button class="filter-btn" data-filter="404">404</button>
+            <button class="filter-btn" data-filter="409">409</button>
+            <button class="filter-btn" data-filter="500">500</button>
+          </div>
+        </div>
+
+        <ul class="logs-list" id="logs-list">
+          <!-- Logs will be dynamically added here -->
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      // Sample log data - this would normally be loaded from the file
+      let logData = {};
+
+      async function loadLogData() {
+        try {
+          const response = await fetch('log.json');
+          if (!response.ok) throw new Error('Failed to fetch log data');
+          logData = await response.json();
+        } catch (error) {
+          console.error('Error loading log data:', error);
+          logData = {};
+        }
+      }
+
+      async function initializeApp() {
+        await loadLogData();
+        initDashboard();
+        renderLogs();
+      }
+
+      // Initialize the dashboard
+      function initDashboard() {
+        const totalErrors = Object.keys(logData).length;
+        const criticalErrors = Object.values(logData).filter(
+          (item) => item.status_code >= 500
+        ).length;
+        const clientErrors = Object.values(logData).filter(
+          (item) => item.status_code >= 400 && item.status_code < 500
+        ).length;
+
+        document.getElementById("total-errors").textContent = totalErrors;
+        document.getElementById("critical-errors").textContent = criticalErrors;
+        document.getElementById("client-errors").textContent = clientErrors;
+      }
+
+      // Render log items
+      function renderLogs(filterValue = "all") {
+        const logsList = document.getElementById("logs-list");
+        logsList.innerHTML = "";
+
+        Object.entries(logData).forEach(([endpoint, data]) => {
+          if (
+            filterValue !== "all" &&
+            data.status_code.toString() !== filterValue
+          ) {
+            return;
+          }
+
+          const listItem = document.createElement("li");
+          listItem.className = "log-item";
+          listItem.dataset.statusCode = data.status_code;
+
+          listItem.innerHTML = `
+                    <div class="log-header">
+                        <div class="endpoint">
+                            ${endpoint}
+                            <span class="status status-${data.status_code}">${data.status_code}</span>
+                        </div>
+                        <div class="toggle-icon">+</div>
+                    </div>
+                    <div class="log-details">
+                        <div class="error-details">
+                            <div class="error-detail">
+                                <h4>Message</h4>
+                                <p>${data.error.message}</p>
+                            </div>
+                            <div class="error-detail">
+                                <h4>Description</h4>
+                                <p>${data.error.description}</p>
+                            </div>
+                            <div class="error-detail">
+                                <h4>Cause</h4>
+                                <p>${data.error.cause}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          logsList.appendChild(listItem);
+        });
+
+        // Add click event listeners to the newly created items
+        addEventListeners();
+      }
+
+      // Add event listeners for expandable logs and filters
+      function addEventListeners() {
+        // Expandable log items
+        document.querySelectorAll(".log-header").forEach((header) => {
+          header.addEventListener("click", () => {
+            const logItem = header.parentElement;
+            const details = logItem.querySelector(".log-details");
+            const toggleIcon = header.querySelector(".toggle-icon");
+
+            details.classList.toggle("active");
+            toggleIcon.textContent = details.classList.contains("active")
+              ? "−"
+              : "+";
+          });
+        });
+
+        // Filter buttons
+        document.querySelectorAll(".filter-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            document
+              .querySelectorAll(".filter-btn")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            renderLogs(btn.dataset.filter);
+          });
+        });
+
+        // Search functionality
+        document
+          .getElementById("search-input")
+          .addEventListener("input", (e) => {
+            const searchValue = e.target.value.toLowerCase();
+            document.querySelectorAll(".log-item").forEach((item) => {
+              const endpoint = item
+                .querySelector(".endpoint")
+                .textContent.toLowerCase();
+              if (endpoint.includes(searchValue)) {
+                item.style.display = "block";
+              } else {
+                item.style.display = "none";
+              }
+            });
+          });
+      }
+
+      // Initialize the app
+      document.addEventListener("DOMContentLoaded", () => {
+        initializeApp();
+      });
+
+      // Function to load JSON data from file (would be used in a real implementation)
+      // This is just for illustration, as we're using static data for the example
+      /*
+        async function loadLogData() {
+            try {
+                const response = await fetch('log/log.json');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error loading log data:', error);
+                return {};
+            }
+        }
+        */
+    </script>
+  </body>
+</html5

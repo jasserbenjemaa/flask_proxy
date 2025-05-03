@@ -1,5 +1,4 @@
 import json
-from collections import defaultdict
 import difflib
 
 
@@ -43,70 +42,6 @@ def compare_json_keys(a, b, path=""):
 
     return mismatches
 
-json_a = {
-    "user": {
-        "id": 123,
-        "name": {
-            "first": "Alice",
-            "thirds": "Alice",
-            "first888": "Alice",
-            "last": "Johnson"
-        },
-        "address": {
-            "street": "123 Main St",
-            "city": "Springfield",
-            "zipcode": "12345"
-        },
-        "emails": [
-            {"type": "work", "email": "alice@company.com"},
-            {"type": "personal", "email": "alice@gmail.com"}
-        ],
-        "preferences": {
-            "newsletter": True,
-            "notifications": {
-                "email": True,
-                "sms": False
-            }
-        }
-    },
-    "session": {
-        "token": "abc123",
-        "expires": "2025-01-01T00:00:00Z"
-    }
-}
-
-json_b = {
-    "user": {
-        "id": 123,
-        "name": {
-            "firsts": "Alice",
-            "third": "Alice",
-            "second": "Alice",
-            "last": "Johnson"
-            # Missing "last"
-        },
-        "address": {
-            "street": "123 Main St",
-            "zipcode": "12345",
-            "country": "USA"  # Extra key
-        },
-        "emails": [
-            {"type": "work", "email": "alice@company.com", "verified": True}
-        ],
-        "preferences": {
-            "newsletter": False
-            # Missing "notifications"
-        }
-    },
-    "session": {
-        "token": "abc123"
-        # Missing "expires"
-    },
-    "device": {
-        "type": "mobile",
-        "os": "iOS"
-    }
-}
 
 
 def compare_words(word1, word2):
@@ -165,8 +100,7 @@ def finall_boss_improved(obj):
 
 
 
-
-differences = compare_json_keys(json_a, json_b)
-print(json.dumps(differences, indent=4))
-print("\nImproved approach:")
-finall_boss_improved(differences)
+def compare_json(json_a,json_b):
+    differences = compare_json_keys(json_a, json_b)
+    similarity=finall_boss_improved(differences)
+    return {"similarity":similarity,"differences":differences}

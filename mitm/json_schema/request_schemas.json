@@ -1,0 +1,14 @@
+{
+    "/receive": {
+      "id":3,
+          "name": "string",
+            "message": "string",
+            "age": "string",
+            "source": "string"
+    },
+    "/submit": {
+          "name": "string",
+            "message": "string",
+            "email": "string"
+        }
+}
