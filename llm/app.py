@@ -8,7 +8,6 @@ app = Flask(__name__)
 def generate():
     """Generate a response to a single prompt"""
     try:
-
         data = request.get_json()
         backend_errors = data["backend_errors"]
         client_req = data["client_req"]

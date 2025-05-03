@@ -1,0 +1,26 @@
+{
+    "/receive": {
+        "methods": [
+            "POST"
+        ],
+        "function": "receive_json",
+        "code": "def receive_json():\n    try:\n        data = request.get_json()\n        return jsonify({\"second_name\":data['name'][\"second_name\"],\"name_first\":data['name'][\"first_name\"],\"message\":data[\"message\"],\"source\":data[\"source\"],\"age\":data[\"age\"]})\n    except Exception as e:\n        error_trace = traceback.format_exc()\n        return jsonify({\"traceback\":error_trace}), 400",
+        "file": "backend/app.py"
+    },
+    "/": {
+        "methods": [
+            "GET"
+        ],
+        "function": "index",
+        "code": "def index():\n    return render_template('index.html')",
+        "file": "backend/app.py"
+    },
+    "/submit": {
+        "methods": [
+            "POST"
+        ],
+        "function": "submit_form",
+        "code": "def submit_form():\n    logger.info(\"Received a POST request to /submit\")\n    try:\n        data = request.form\n        name = data[\"name\"]\n        email = data.get('email')\n        message = data.get('message')\n\n        logger.info(f\"Received form submission - Name: {name}, Email: {email}\")\n\n        # Process the form data here\n        return jsonify({\n            \"status\": \"success\",\n            \"message\": \"Form submitted successfully\"\n        }), 200\n    except Exception as e:\n        error_trace = traceback.format_exc()\n        logger.info(f\"backend error: {error_trace}\")\n        logger.error(f\"Error processing form: {str(e)}\")\n        return jsonify({\n            \"status\": \"error\",\n            \"message\": \"An error occurred while processing the form\",\n            \"traceback\":error_trace\n        }), 500",
+        "file": "backend/app.py"
+    }
+}

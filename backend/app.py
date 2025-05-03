@@ -12,7 +12,7 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 def receive_json():
     try:
         data = request.get_json()
-        return jsonify({"name":data['name'],"message":data["message"],"source":data["source"],"age":data["age"]})
+        return jsonify({"second_name":data['name']["second_name"],"name_first":data['name']["first_name"],"message":data["message"],"source":data["source"],"age":data["age"]})
     except Exception as e:
         error_trace = traceback.format_exc()
         return jsonify({"traceback":error_trace}), 400
@@ -20,6 +20,7 @@ def receive_json():
 @app.route('/')
 def index():
     return render_template('index.html')
+    
 @app.route('/submit', methods=['POST'])
 def submit_form():
     logger.info("Received a POST request to /submit")
