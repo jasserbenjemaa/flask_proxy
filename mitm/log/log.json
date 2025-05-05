@@ -1,20 +1,11 @@
 {
   "/receive": {
     "error": {
-      "cause": "Missing required field(s): 'age', 'message'. Unexpected field(s): 'msg', 'ge'",
+      "cause": "Missing required field(s): 'age'. Unexpected field(s): 'ag'",
       "description": "The API request is malformed or contains invalid parameters.",
       "message": "Bad Request"
     },
     "method": "POST",
     "status_code": 400
-  },
-  "/invalid": {
-    "error": {
-      "cause": "Proxy error",
-      "description": "The API request is malformed or contains invalid parameters.",
-      "message": "Bad Request"
-    },
-    "method": "GET",
-    "status_code": 500
   }
 }

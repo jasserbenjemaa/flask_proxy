@@ -1,20 +1,4 @@
 {
-    "/api": {
-        "methods": [
-            "POST"
-        ],
-        "function": "generate",
-        "code": "def generate():\n    \"\"\"Generate a response to a single prompt\"\"\"\n    try:\n        data = request.get_json()\n        backend_errors = data[\"backend_errors\"]\n        client_req = data[\"client_req\"]\n        file_path = data[\"file_path\"]\n        content_type = request.headers.get(\"Content-Type\", \"\")\n\n        prompt_json = f\"\"\"this errors {backend_errors} was caused by this API request from the client: {client_req}.\n        Generate a complete Python script that:\n        - Takes a JSON dictionary as an argument from the command line.\n        - Processes the input and corrects it to prevent the error.\n        - Prints the corrected dictionary as a JSON string.\n        - I don't want None values the data exist but the key may have a slightly diffrent name.\n        - Does not lose any data.\n        Your output should be a valid Python script. Do not include explanations, comments, or import statements\u2014just the raw script.\"\"\"\n\n        prompt_form = f\"\"\"This error {backend_errors} was caused by a multipart/form-data API request from the client: {client_req}.\n        Generate a complete Python script that:\n        - Don't import any library that requires installation use regular experation.\n        - Takes the raw multipart form data as input from the command line.\n        - Processes the input and corrects it to prevent the error.\n        - Ensures all form fields and file content are properly formatted.\n        - Outputs the corrected multipart form data.\n        - Handles any encoding issues common with multipart form data.\n        Your output should be a valid Python script. Do not include explanations, comments, or import statements\u2014just the raw script.\"\"\"\n\n        prompt_app_form = f\"\"\"This error {backend_errors} was caused by an application/x-www-form-urlencoded API request from the client: {client_req}.\n        Generate a complete Python script that:\n        - Takes the raw URL-encoded form data as input from the command line.\n        - Correctly formats key-value pairs to fix any naming or structure issues.\n        - Ensures proper URL encoding of special characters in form values.\n        - Outputs the corrected URL-encoded form data.\n        - Preserves all original data - the data exists but parameter names may have slightly different formats.\n        - Handles common URL encoding/decoding issues.\n        Your output should be a valid Python script. Do not include explanations, comments, or import statements\u2014just the raw script.\"\"\"\n\n        match content_type:\n            case \"application/json\":\n                prompt = prompt_json\n            case \"multipart/form-data\":\n                prompt = prompt_form\n            case \"application/x-www-form-urlencoded\":\n                prompt = prompt_app_form\n            case _:\n                return jsonify({\"error\": \"Unsupported content type\"}), 400\n\n        provider = \"gemini\"\n        model = \"gemini-2.0-flash\"\n        temperature =1\n        max_tokens = 8000\n\n\n        # Validate required parameters\n        if not prompt:\n            return jsonify({\"error\": \"prompt is required\"}), 400\n\n        # Create a new LLM instance\n        llm, token_price = llm_module.create_llm_instance(\n            provider=provider,\n            model_name=model,\n            temperature=temperature,\n            max_tokens=max_tokens\n        )\n\n        if not llm:\n            return jsonify({\"error\": \"Failed to initialize LLM\"}), 500\n\n\n        # Send prompt to LLM\n        result = llm_module.send_prompt(\n            llm=llm,\n            prompt=prompt,\n            system_message=\"\",\n            #token_price=token_price\n        )\n\n        # Save costs asynchronously\n        #threading.Thread(target=llm_module.save_costs).start()\n\n\n        with open(f'./{file_path}','w') as f:\n            from markdown_to_text import markdown_to_text\n            llm_formated_result= markdown_to_text(result[\"content\"])\n            f.write(llm_formated_result)\n\n        # Return response\n        return jsonify({\n            \"response\":result[\"content\"],\n            #\"cost_info\": result[\"cost_info\"]\n        })\n\n    except Exception as e:\n        error_trace = traceback.format_exc()\n        return jsonify({\"traceback\":error_trace}), 500",
-        "file": "./llm/app.py"
-    },
-    "/health": {
-        "methods": [
-            "POST"
-        ],
-        "function": "health_check",
-        "code": "def health_check():\n    \"\"\"Simple health check endpoint\"\"\"\n    return jsonify({\"status\": \"healthy\"})",
-        "file": "./llm/app.py"
-    },
     "/receive": {
         "methods": [
             "POST"
@@ -23,72 +7,28 @@
         "code": "def receive_json():\n    try:\n        data = request.get_json()\n        return jsonify({\"second_name\":data['name'][\"second_name\"],\"name_first\":data['name'][\"first_name\"],\"message\":data[\"message\"],\"source\":data[\"source\"],\"age\":data[\"age\"]})\n    except Exception as e:\n        error_trace = traceback.format_exc()\n        return jsonify({\"traceback\":error_trace}), 400",
         "file": "./backend/app.py"
     },
+    "/add": {
+        "methods": [
+            "POST"
+        ],
+        "function": "handle_complex_json",
+        "code": "def handle_complex_json():\n    try:\n        data = request.get_json(force=True)\n\n        # Validate presence of top-level keys\n        required_keys = ['user', 'preferences', 'history']\n        for key in required_keys:\n            if key not in data:\n                return jsonify({\"error\": f\"Missing key: '{key}'\"}), 400\n\n        # Validate 'user' object\n        user = data['user']\n        if not isinstance(user.get('id'), int):\n            return jsonify({\"error\": \"User ID must be an integer\"}), 400\n        if not isinstance(user.get('name'), dict):\n            return jsonify({\"error\": \"User name must be a dictionary with 'first' and 'last'\"}), 400\n\n        # Validate name structure\n        name = user['name']\n        if 'first' not in name or 'last' not in name:\n            return jsonify({\"error\": \"Missing 'first' or 'last' in user name\"}), 400\n\n        # Validate preferences\n        preferences = data['preferences']\n        if 'notifications' not in preferences or not isinstance(preferences['notifications'], bool):\n            return jsonify({\"error\": \"'notifications' must be a boolean in preferences\"}), 400\n\n        # Validate history (list of past actions)\n        history = data['history']\n        if not isinstance(history, list):\n            return jsonify({\"error\": \"'history' must be a list\"}), 400\n\n        for idx, item in enumerate(history):\n            if 'timestamp' not in item or 'action' not in item:\n                return jsonify({\"error\": f\"Missing 'timestamp' or 'action' in history item {idx}\"}), 400\n\n        # Optional section: settings\n        settings = data.get('settings', {})\n        theme = settings.get('theme', 'light')\n\n        return jsonify({\n            \"message\": \"JSON received and validated\",\n            \"user_id\": user['id'],\n            \"user_name\": f\"{name['first']} {name['last']}\",\n            \"notifications_enabled\": preferences['notifications'],\n            \"history_count\": len(history),\n            \"theme\": theme\n        })\n\n    except Exception:\n        return jsonify({\"traceback\": traceback.format_exc()}), 500",
+        "file": "./backend/app.py"
+    },
     "/": {
         "methods": [
             "GET"
         ],
         "function": "index",
         "code": "def index():\n    return render_template('index.html')",
-        "file": "./backend/app.py",
-        "notes": "Warning: Route defined in multiple files",
-        "also_in": [
-            "./consumer/app.py"
-        ]
+        "file": "./backend/app.py"
     },
     "/submit": {
         "methods": [
             "POST"
         ],
         "function": "submit_form",
-        "code": "def submit_form():\n    logger.info(\"Received a POST request to /submit\")\n    try:\n        data = request.form\n        name = data[\"name\"]\n        email = data.get('email')\n        message = data.get('message')\n\n        logger.info(f\"Received form submission - Name: {name}, Email: {email}\")\n\n        # Process the form data here\n        return jsonify({\n            \"status\": \"success\",\n            \"message\": \"Form submitted successfully\"\n        }), 200\n    except Exception as e:\n        error_trace = traceback.format_exc()\n        logger.info(f\"backend error: {error_trace}\")\n        logger.error(f\"Error processing form: {str(e)}\")\n        return jsonify({\n            \"status\": \"error\",\n            \"message\": \"An error occurred while processing the form\",\n            \"traceback\":error_trace\n        }), 500",
+        "code": "def submit_form():\n    logger.info(\"Received a POST request to /submit\")\n    try:\n        data = request.form\n        name = data[\"name\"]\n        email = data.get('email')\n        message = data.get('message')\n        \n\n        logger.info(f\"Received form submission - Name: {name}, Email: {email} message:{message}\")\n\n        # Process the form data here\n        return jsonify({\n            \"status\": \"success\",\n            \"message\": \"Form submitted successfully\"\n        }), 200\n    except Exception as e:\n        error_trace = traceback.format_exc()\n        logger.info(f\"backend error: {error_trace}\")\n        logger.error(f\"Error processing form: {str(e)}\")\n        return jsonify({\n            \"status\": \"error\",\n            \"message\": \"An error occurred while processing the form\",\n            \"traceback\":error_trace\n        }), 500",
         "file": "./backend/app.py"
-    },
-    "/send_with_proxy": {
-        "methods": [
-            "POST"
-        ],
-        "function": "send_with_proxy",
-        "code": "def send_with_proxy():\n    \"\"\"\n    Send data through the mitmproxy to the backend\n    ---\n    parameters:\n      - name: data\n        in: body\n        required: true\n        schema:\n          type: object\n          properties:\n            id:\n              type: integer\n              example: 123\n            name:\n              type: string\n              example: \"Jasser\"\n            message:\n              type: string\n              example: \"Hello\"\n            source:\n              type: string\n              example: \"consumer\"\n            age:\n              type: integer\n              example: 22\n    responses:\n      200:\n        description: Response from backend through proxy\n    \"\"\"\n    data = request.get_json()\n    # Use the PROXY_URL to send data to the backend\n    response = requests.post(f\"{BACKEND_URL}/receive\", proxies=proxies, json=data)\n    return response.json()",
-        "file": "./consumer/app.py"
-    },
-    "/send_direct": {
-        "methods": [
-            "POST"
-        ],
-        "function": "send_direct",
-        "code": "def send_direct():\n    \"\"\"\n    Send data directly to the backend without mitmproxy\n    ---\n    parameters:\n      - name: data\n        in: body\n        required: true\n        schema:\n          type: object\n          properties:\n            id:\n              type: integer\n              example: 123\n            name:\n              type: string\n              example: \"Jasser\"\n            message:\n              type: string\n              example: \"Hello\"\n            source:\n              type: string\n              example: \"consumer\"\n            age:\n              type: integer\n              example: 22\n    responses:\n      200:\n        description: Direct response from backend\n    \"\"\"\n    data = request.get_json()\n    # Send directly to the backend without using a proxy\n    response = requests.post(f\"{BACKEND_URL}/receive\", json=data)\n    return response.json()",
-        "file": "./consumer/app.py"
-    },
-    "/valid": {
-        "methods": [
-            "GET"
-        ],
-        "function": "send",
-        "code": "def send():\n    response = requests.post(\n        f\"{PROXY_URL}/receive\",\n        json=valid_api\n        )\n    return response.json()",
-        "file": "./consumer/app.py"
-    },
-    "/invalid": {
-        "methods": [
-            "GET"
-        ],
-        "function": "valid",
-        "code": "def valid():\n\n    response = requests.post(\n        f\"{BACKEND_URL}/receive\",\n        json=invalid_api\n        )\n    return response.json()",
-        "file": "./consumer/app.py"
-    },
-    "/invalid_proxy": {
-        "methods": [
-            "GET"
-        ],
-        "function": "invalid",
-        "code": "def invalid():\n    response = requests.post(\n        f\"{BACKEND_URL}/receive\",\n        proxies=proxies,\n        json=invalid_api\n        )\n    return response.json()",
-        "file": "./consumer/app.py"
-    },
-    "/<path:path>": {
-        "methods": [
-            "OPTIONS"
-        ],
-        "function": "options_handler",
-        "code": "def options_handler(path):\n    return '', 204",
-        "file": "./consumer/app.py"
     }
 }

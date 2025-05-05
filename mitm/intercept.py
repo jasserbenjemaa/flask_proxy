@@ -1,10 +1,8 @@
 from mitmproxy import ctx, http  # type: ignore
 import traceback
 import json
-import httpx  # type: ignore
 from utils import fix_api, get_file_path,read_json_file,generate_error_documentation,save_to_json_file
 from compare_json import compare_json
-from http.client import responses
 
 def request(flow: http.HTTPFlow) -> None:
     try:
@@ -24,7 +22,7 @@ def request(flow: http.HTTPFlow) -> None:
 def response(flow: http.HTTPFlow) -> None:
     try:
         # Only process specific status codes
-        if flow.response.status_code in [400, 422,500]:
+        if flow.response.status_code in [400,401,403,404,409,429,500,503]:
 
             # Parse backend error and original client request
             client_req = original_client_flow.request.content.decode("utf-8")

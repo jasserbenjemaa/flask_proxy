@@ -17,6 +17,60 @@ def receive_json():
         error_trace = traceback.format_exc()
         return jsonify({"traceback":error_trace}), 400
 
+@app.route('/add', methods=['POST'])
+def handle_complex_json():
+    try:
+        data = request.get_json(force=True)
+
+        # Validate presence of top-level keys
+        required_keys = ['user', 'preferences', 'history']
+        for key in required_keys:
+            if key not in data:
+                return jsonify({"error": f"Missing key: '{key}'"}), 400
+
+        # Validate 'user' object
+        user = data['user']
+        if not isinstance(user.get('id'), int):
+            return jsonify({"error": "User ID must be an integer"}), 400
+        if not isinstance(user.get('name'), dict):
+            return jsonify({"error": "User name must be a dictionary with 'first' and 'last'"}), 400
+
+        # Validate name structure
+        name = user['name']
+        if 'first' not in name or 'last' not in name:
+            return jsonify({"error": "Missing 'first' or 'last' in user name"}), 400
+
+        # Validate preferences
+        preferences = data['preferences']
+        if 'notifications' not in preferences or not isinstance(preferences['notifications'], bool):
+            return jsonify({"error": "'notifications' must be a boolean in preferences"}), 400
+
+        # Validate history (list of past actions)
+        history = data['history']
+        if not isinstance(history, list):
+            return jsonify({"error": "'history' must be a list"}), 400
+
+        for idx, item in enumerate(history):
+            if 'timestamp' not in item or 'action' not in item:
+                return jsonify({"error": f"Missing 'timestamp' or 'action' in history item {idx}"}), 400
+
+        # Optional section: settings
+        settings = data.get('settings', {})
+        theme = settings.get('theme', 'light')
+
+        return jsonify({
+            "message": "JSON received and validated",
+            "user_id": user['id'],
+            "user_name": f"{name['first']} {name['last']}",
+            "notifications_enabled": preferences['notifications'],
+            "history_count": len(history),
+            "theme": theme
+        })
+
+    except Exception:
+        return jsonify({"traceback": traceback.format_exc()}), 500
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -29,8 +83,9 @@ def submit_form():
         name = data["name"]
         email = data.get('email')
         message = data.get('message')
+        
 
-        logger.info(f"Received form submission - Name: {name}, Email: {email}")
+        logger.info(f"Received form submission - Name: {name}, Email: {email} message:{message}")
 
         # Process the form data here
         return jsonify({
