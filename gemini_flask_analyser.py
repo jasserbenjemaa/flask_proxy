@@ -148,7 +148,7 @@ if __name__ == "__main__":
         # Default values if not provided as command line arguments
         input_file = "./flask_routes.json"
         output_file = "gemini_responses.json"
-        api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyA-ix8kbfIt3tml5ekHuc4L5V-Lwg8br9Q")
+        api_key = os.environ.get("GEMINI_API_KEY", "")
         model = "gemini-2.0-flash"
     
     # Process the endpoints
