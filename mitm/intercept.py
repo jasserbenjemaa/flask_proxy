@@ -27,7 +27,7 @@ def response(flow: http.HTTPFlow) -> None:
             # Parse backend error and original client request
             client_req = original_client_flow.request.content.decode("utf-8")
             client_req_dict = json.loads(client_req)
-            file_path = get_file_path(original_client_flow)
+            file_path = get_file_path(compare_json_data['similarity'],original_client_flow)
 
             url_path = original_client_flow.request.path
             method = original_client_flow.request.method
@@ -35,11 +35,11 @@ def response(flow: http.HTTPFlow) -> None:
 
             json_schemas=read_json_file('request_schemas.json')
             compare_json_data=compare_json(json_schemas[url_path],client_req_dict)
-            ctx.log.info(f"server_url:{compare_json_data},method:{method}")
+            ctx.log.info(f"compare_json_data:{compare_json_data},method:{method}")
             log_error=generate_error_documentation(url_path,status_code,method,compare_json_data['differences'])
             save_to_json_file(log_error)
             ctx.log.info(f"{log_error}")
-            #make_correction_script(compare_json,method,url_path)
+            #make_correction_script(compare_json_data['similarity'],original_client_flow)
 
 
 

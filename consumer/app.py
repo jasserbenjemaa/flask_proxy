@@ -1,4 +1,3 @@
-
 from flask import Flask, jsonify, request
 import requests
 import os
@@ -177,7 +176,12 @@ def send_with_proxy():
             id:
               type: integer
             name:
-              type: string
+              type: object
+              properties:
+                first_name:
+                  type: string
+                second_name:
+                  type: string
             message:
               type: string
             source:
