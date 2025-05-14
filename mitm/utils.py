@@ -59,17 +59,39 @@ def convert_to_json(data, content_type):
     else:
         return {"error": f"Unsupported content type: {content_type}"}
 
-def get_file_path(flow):
+
+def get_file_path(flow, backend_json):
     server_url = flow.request.url
     method = flow.request.method
     content_type = flow.request.headers.get("Content-Type", "")
-
+    
+    def extract_all_fields(data, prefix=""):
+        """Recursively extract all fields and sub-fields from a dictionary"""
+        result = []
+        if isinstance(data, dict):
+            for key, value in sorted(data.items()):
+                field_name = f"{prefix}_{key}" if prefix else key
+                result.append(field_name)
+                if isinstance(value, (dict, list)):
+                    result.extend(extract_all_fields(value, field_name))
+        elif isinstance(data, list):
+            for i, item in enumerate(data):
+                if isinstance(item, (dict, list)):
+                    result.extend(extract_all_fields(item, f"{prefix}_{i}" if prefix else str(i)))
+        return result
+    
     try:
         client_req = convert_to_json(flow.request.content, content_type)
-        str_key = ""
-        for key in sorted(client_req.keys()):
-            str_key += key
-
+        
+        # Extract all fields from client_req and backend_json
+        client_fields = extract_all_fields(client_req)
+        backend_fields = extract_all_fields(backend_json)
+        
+        # Combine all fields for the filename
+        all_fields = sorted(set(client_fields + backend_fields))
+        str_key = "_".join(all_fields)
+        
+        # Generate filename based on URL, method, and fields
         file_name = f"{str(server_url).replace('http://','').replace('/','_')}_{method}_{str_key}"
         hash_file_name = hashlib.md5(file_name.encode()).hexdigest()
         return f"api_correction_scripts/{hash_file_name}.py"
@@ -100,10 +122,10 @@ def fix_api(api, file_path):
             ctx.log.info(f"Fixed request: {fixed_api}")
             return fixed_api
         else:
-            ctx.log.info(f"Correction script not found")
+            ctx.log.info("Correction script not found")
     except subprocess.TimeoutExpired:
         ctx.log.error(f"Script execution timed out: {file_path}")
-    except Exception as e:
+    except Exception :
         error_trace = traceback.format_exc()
         ctx.log.error(f"Error in fix_api: {error_trace}")
 
@@ -221,7 +243,7 @@ def generate_error_documentation(url_path, status_code, method, field_difference
     return error_doc
 
 
-def save_to_json_file(data, folder="log", filename="log.json"):
+def save_to_json_file(data, folder="log", file_name="log.json"):
     """
     Save error documentation to a JSON file in the specified folder.
     
@@ -240,7 +262,7 @@ def save_to_json_file(data, folder="log", filename="log.json"):
             print(f"Created folder: {folder}")
         
         # Full path to the file
-        filepath = os.path.join(folder, filename)
+        filepath = os.path.join(folder, file_name)
         
         # Check if file exists and has content
         if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
@@ -257,8 +279,8 @@ def save_to_json_file(data, folder="log", filename="log.json"):
         # Write to file
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2, sort_keys=True)
-        print(f"Error documentation saved to {filepath}")
+        ctx.log.error(f"Error documentation saved to {filepath}")
         
     except Exception as e:
-        print(f"Error saving to {filepath}: {str(e)}")
+        ctx.log.error(f"Error saving to {file_name}: {str(e)}")
 
