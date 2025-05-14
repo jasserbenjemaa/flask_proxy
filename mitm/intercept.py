@@ -1,9 +1,11 @@
 from mitmproxy import ctx, http  # type: ignore
 import traceback
+import httpx
 import json
 from utils import fix_api, get_file_path,read_json_file,generate_error_documentation,save_to_json_file
 from generate_fix_data_script import generate_fix_data_script
 from compare_json import compare_json
+
 try:
     json_schemas=read_json_file('request_schemas.json')
 except Exception as e:
@@ -48,10 +50,20 @@ def response(flow: http.HTTPFlow) -> None:
             
             file_path = get_file_path(flow,json_schemas[url_path])
             generate_fix_data_script(compare_json_data['similarity'],file_path)
-
-
-
-
+            fixed_req_content = fix_api(client_req, file_path)
+            headers = dict(original_client_flow.request.headers)
+            headers['Content-Length'] = str(len(fixed_req_content.encode('utf-8')))
+            with httpx.Client() as client:
+                response = client.request(
+                    method=original_client_flow.request.method,
+                    url=original_client_flow.request.url,
+                    headers=headers,
+                    cookies=original_client_flow.request.cookies,
+                    content=fixed_req_content.encode('utf-8')
+                )
+            flow.response.content=response
+                
+            
     except Exception as e:
         error_trace = traceback.format_exc()
         ctx.log.error(f"Error in response handling: {error_trace} {e}")

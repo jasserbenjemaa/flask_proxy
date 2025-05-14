@@ -321,27 +321,32 @@
     </div>
 
     <script>
-      // Sample log data - this would normally be loaded from the file
+      // Log data will be loaded from the server
       let logData = {};
 
+      // Load log data from the server
       async function loadLogData() {
         try {
-          const response = await fetch('log.json');
-          if (!response.ok) throw new Error('Failed to fetch log data');
+          const response = await fetch('/log.json');
+          if (!response.ok) {
+            throw new Error('Failed to fetch log data');
+          }
           logData = await response.json();
+          console.log('Log data loaded successfully:', logData);
         } catch (error) {
           console.error('Error loading log data:', error);
           logData = {};
         }
       }
 
+      // Initialize the application
       async function initializeApp() {
         await loadLogData();
         initDashboard();
         renderLogs();
       }
 
-      // Initialize the dashboard
+      // Initialize the dashboard with statistics
       function initDashboard() {
         const totalErrors = Object.keys(logData).length;
         const criticalErrors = Object.values(logData).filter(
@@ -356,7 +361,7 @@
         document.getElementById("client-errors").textContent = clientErrors;
       }
 
-      // Render log items
+      // Render log items based on filter
       function renderLogs(filterValue = "all") {
         const logsList = document.getElementById("logs-list");
         logsList.innerHTML = "";
@@ -374,35 +379,35 @@
           listItem.dataset.statusCode = data.status_code;
 
           listItem.innerHTML = `
-                    <div class="log-header">
-                        <div class="endpoint">
-                            ${endpoint}
-                            <span class="status status-${data.status_code}">${data.status_code}</span>
-                        </div>
-                        <div class="toggle-icon">+</div>
-                    </div>
-                    <div class="log-details">
-                        <div class="error-details">
-                            <div class="error-detail">
-                                <h4>Message</h4>
-                                <p>${data.error.message}</p>
-                            </div>
-                            <div class="error-detail">
-                                <h4>Description</h4>
-                                <p>${data.error.description}</p>
-                            </div>
-                            <div class="error-detail">
-                                <h4>Cause</h4>
-                                <p>${data.error.cause}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
+            <div class="log-header">
+              <div class="endpoint">
+                ${endpoint}
+                <span class="status status-${data.status_code}">${data.status_code}</span>
+              </div>
+              <div class="toggle-icon">+</div>
+            </div>
+            <div class="log-details">
+              <div class="error-details">
+                <div class="error-detail">
+                  <h4>Message</h4>
+                  <p>${data.error.message}</p>
+                </div>
+                <div class="error-detail">
+                  <h4>Description</h4>
+                  <p>${data.error.description}</p>
+                </div>
+                <div class="error-detail">
+                  <h4>Cause</h4>
+                  <p>${data.error.cause}</p>
+                </div>
+              </div>
+            </div>
+          `;
 
           logsList.appendChild(listItem);
         });
 
-        // Add click event listeners to the newly created items
+        // Add event listeners to the newly created items
         addEventListeners();
       }
 
@@ -451,25 +456,10 @@
           });
       }
 
-      // Initialize the app
+      // Initialize the app when the page loads
       document.addEventListener("DOMContentLoaded", () => {
         initializeApp();
       });
-
-      // Function to load JSON data from file (would be used in a real implementation)
-      // This is just for illustration, as we're using static data for the example
-      /*
-        async function loadLogData() {
-            try {
-                const response = await fetch('log/log.json');
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('Error loading log data:', error);
-                return {};
-            }
-        }
-        */
     </script>
   </body>
-</html
+</html>
