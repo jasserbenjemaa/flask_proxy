@@ -19,6 +19,7 @@ services:
       - ./mitm/api_correction_scripts:/mitm/api_correction_scripts
     ports:
       - "8091:8091" # Proxy port
+      - "8092:8092"
     networks:
       - container-net
 

@@ -15,28 +15,19 @@ def fix_data(data):
 
     # Similarity score: 0.947
     try:
-        if 'first_nme' in data['name']:
-            data['name']['first_name'] = data['name']['first_nme']
+        if 'fist_name' in data['name']:
+            data['name']['first_name'] = data['name']['fist_name']
             # Optional: remove the incorrect field after copying its value
-            del data['name']['first_nme']
+            del data['name']['fist_name']
     except (KeyError, TypeError):
         pass
 
-    # Similarity score: 0.800
+    # Similarity score: 0.727
     try:
-        if 'soce' in data:
-            data['source'] = data['soce']
+        if 'sooce' in data:
+            data['source'] = data['sooce']
             # Optional: remove the incorrect field after copying its value
-            del data['soce']
-    except (KeyError, TypeError):
-        pass
-
-    # Similarity score: 0.800
-    try:
-        if 'ae' in data:
-            data['age'] = data['ae']
-            # Optional: remove the incorrect field after copying its value
-            del data['ae']
+            del data['sooce']
     except (KeyError, TypeError):
         pass
     return data

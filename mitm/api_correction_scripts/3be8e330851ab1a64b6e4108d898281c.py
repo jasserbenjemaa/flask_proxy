@@ -12,33 +12,6 @@ def fix_data(data):
             del data['name']['fist_name']
     except (KeyError, TypeError):
         pass
-
-    # Similarity score: 0.900
-    try:
-        if 'secod_nae' in data['name']:
-            data['name']['second_name'] = data['name']['secod_nae']
-            # Optional: remove the incorrect field after copying its value
-            del data['name']['secod_nae']
-    except (KeyError, TypeError):
-        pass
-
-    # Similarity score: 0.800
-    try:
-        if 'soce' in data:
-            data['source'] = data['soce']
-            # Optional: remove the incorrect field after copying its value
-            del data['soce']
-    except (KeyError, TypeError):
-        pass
-
-    # Similarity score: 0.800
-    try:
-        if 'ae' in data:
-            data['age'] = data['ae']
-            # Optional: remove the incorrect field after copying its value
-            del data['ae']
-    except (KeyError, TypeError):
-        pass
     return data
 
 def get_nested_value(data, path_parts):

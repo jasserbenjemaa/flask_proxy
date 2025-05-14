@@ -1,7 +1,7 @@
 {
   "/receive": {
     "error": {
-      "cause": "Missing required field(s): 'name.first_name', 'source'. Unexpected field(s): 'id', 'name.fist_name', 'soce'",
+      "cause": "Missing required field(s): 'name.first_name'. Unexpected field(s): 'id', 'name.fist_name'",
       "description": "The API request is malformed or contains invalid parameters.",
       "message": "Bad Request"
     },

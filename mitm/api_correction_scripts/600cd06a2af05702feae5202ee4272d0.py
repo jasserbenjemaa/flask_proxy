@@ -4,6 +4,15 @@ import sys
 import json
 
 def fix_data(data):
+    # Similarity score: 0.952
+    try:
+        if 'secod_name' in data['name']:
+            data['name']['second_name'] = data['name']['secod_name']
+            # Optional: remove the incorrect field after copying its value
+            del data['name']['secod_name']
+    except (KeyError, TypeError):
+        pass
+
     # Similarity score: 0.947
     try:
         if 'fist_name' in data['name']:
@@ -13,21 +22,12 @@ def fix_data(data):
     except (KeyError, TypeError):
         pass
 
-    # Similarity score: 0.900
+    # Similarity score: 0.667
     try:
-        if 'secod_nae' in data['name']:
-            data['name']['second_name'] = data['name']['secod_nae']
+        if 'src' in data:
+            data['source'] = data['src']
             # Optional: remove the incorrect field after copying its value
-            del data['name']['secod_nae']
-    except (KeyError, TypeError):
-        pass
-
-    # Similarity score: 0.800
-    try:
-        if 'soce' in data:
-            data['source'] = data['soce']
-            # Optional: remove the incorrect field after copying its value
-            del data['soce']
+            del data['src']
     except (KeyError, TypeError):
         pass
     return data
