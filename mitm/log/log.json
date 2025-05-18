@@ -1,7 +1,71 @@
 {
+  "/api/auth/login": {
+    "error": {
+      "cause": "Username or password is incorrect",
+      "description": "Invalid login credentials",
+      "message": "Bad Request"
+    },
+    "status_code": 400
+  },
+  "/api/customers": {
+    "error": {
+      "cause": "Database query timeout",
+      "description": "Failed to process customer data",
+      "message": "Internal Server Error"
+    },
+    "status_code": 500
+  },
+  "/api/inventory/update": {
+    "error": {
+      "cause": "Another process has modified this resource",
+      "description": "Resource version conflict",
+      "message": "Conflict"
+    },
+    "status_code": 409
+  },
+  "/api/orders/1234": {
+    "error": {
+      "cause": "Order ID does not match any record",
+      "description": "The requested resource does not exist",
+      "message": "Not Found"
+    },
+    "status_code": 404
+  },
+  "/api/payments": {
+    "error": {
+      "cause": "Missing required fields: amount, currency",
+      "description": "Invalid payment information",
+      "message": "Bad Request"
+    },
+    "status_code": 400
+  },
+  "/api/products": {
+    "error": {
+      "cause": "Connection timeout after 30s",
+      "description": "Database connection failed",
+      "message": "Internal Server Error"
+    },
+    "status_code": 500
+  },
+  "/api/reports/generate": {
+    "error": {
+      "cause": "Memory allocation error during report processing",
+      "description": "Failed to generate report",
+      "message": "Internal Server Error"
+    },
+    "status_code": 500
+  },
+  "/api/users": {
+    "error": {
+      "cause": "Invalid or expired JWT token",
+      "description": "Authentication token is missing or invalid",
+      "message": "Unauthorized access"
+    },
+    "status_code": 401
+  },
   "/receive": {
     "error": {
-      "cause": "Missing required field(s): 'name.first_name'. Unexpected field(s): 'id', 'name.fist_name'",
+      "cause": "Missing required field(s): 'name'. Unexpected field(s): 'id', 'nae'",
       "description": "The API request is malformed or contains invalid parameters.",
       "message": "Bad Request"
     },

@@ -1,0 +1,17 @@
+[project]
+name = "llm"
+version = "0.1.0"
+description = "AI workflow that memic the flask code"
+requires-python = ">=3.12"
+dependencies = [
+  "langchain",
+  "langgraph",
+  "langchain-community",
+  "langchain-experimental",
+  "langchain-core",
+  "langchain-groq",
+  "pydantic",
+  "python-dotenv",
+  "requests",
+  "typing-extensions",
+]
