@@ -4,6 +4,7 @@ WORKDIR /llm
 COPY . .
 
 RUN apt-get update
+RUN pip install --upgrade pip
 RUN  pip install -r requirements.txt
 
 EXPOSE  8008

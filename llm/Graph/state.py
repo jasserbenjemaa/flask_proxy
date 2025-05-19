@@ -5,7 +5,7 @@ from typing_extensions import TypedDict, Annotated
 
 class GraphState(TypedDict):
     """
-    Represent the state of our graph
+    Represent the state of our Graph
 
     Attributes:
         go_to:go to the sql_exec or func_exec

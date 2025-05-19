@@ -1,22 +1,17 @@
-from flask import Flask
-from graph.graph import run_agent
-
-from langchain_core.messages import HumanMessage
-from graph.graph import graph_init
+from Graph.graph import graph_init
 from dotenv import load_dotenv
-from IPython.display import Image,display
 
 load_dotenv()
 
-app = Flask(__name__)
 
 def run_graph():
     graph_app=graph_init()
-    display(Image(graph_app.draw_mermaid_png()))
+    print(graph_app.get_graph().draw_mermaid())
+run_graph()
 
 #async def run_graph(topic: str, success_criteria: str = "Provide accurate information "):
 #    """Runs the LangGraph workflow with the specified topic and success criteria."""
-#    # Get the compiled graph
+#    # Get the compiled Graph
 #    app, browser, playwright = await graph_init()
 #
 #    # Initialize state with user message
@@ -29,7 +24,7 @@ def run_graph():
 #        "user_input_needed": False
 #    }
 #
-#    # Run the graph
+#    # Run the Graph
 #    final_state = await app.ainvoke(initial_state)
 #
 #    # Print the final messages
@@ -45,12 +40,3 @@ def run_graph():
 #    await browser.close()
 #
 #    return final_state
-
-
-@app.route('/llm')
-def home():
-    run_agent()
-    return "Hello, Flask!"
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8008)
