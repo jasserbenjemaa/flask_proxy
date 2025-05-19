@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 ENV PROXY_URL=http://mitm:8091
 ENV BACKEND_URL=http://backend:5100
 WORKDIR /app

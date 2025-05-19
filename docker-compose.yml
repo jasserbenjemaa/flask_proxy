@@ -16,10 +16,18 @@ services:
       context: ./mitm
     volumes:
       - ./mitm:/mitm
-      - ./mitm/api_correction_scripts:/mitm/api_correction_scripts
     ports:
       - "8091:8091" # Proxy port
-      - "8092:8092"
+    networks:
+      - container-net
+  
+  llm:
+    build:
+      context: ./llm
+    volumes:
+        - ./llm:/llm 
+    ports:
+      - "8000:8000"
     networks:
       - container-net
 

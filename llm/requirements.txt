@@ -1,0 +1,14 @@
+langchain
+langgraph
+langchain-community
+langchain-experimental
+langchain-core
+langchain-groq
+pydantic
+python-dotenv~=1.0.1
+requests
+typing-extensions
+flask~=3.0.2
+
+typing_extensions~=4.10.0
+ipython~=8.20.0

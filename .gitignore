@@ -2,3 +2,4 @@
 __pycache__
 TODO
 /mitm/api_correction_scripts/*
+/llm/.idea
