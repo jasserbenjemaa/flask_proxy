@@ -12,8 +12,21 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 def receive_json():
     try:
         data = request.get_json()
-        return jsonify({"second_name":data['name']["second_name"],"name_first":data['name']["first_name"],"message":data["message"],"source":data["source"],"age":data["age"]})
-    except Exception as e:
+        age=data["age"]
+        first_name=data["name"]["first_name"]
+        second_name=data["name"]["second_name"]
+        message=data["message"]
+        source=data["source"]
+        return jsonify({"recieved_data":
+        {
+            "age":age,
+            "first_name":first_name,
+            "second_name":second_name,
+            "message":message,
+            "source":source
+        }
+        })
+    except Exception :
         error_trace = traceback.format_exc()
         return jsonify({"traceback":error_trace}), 400
 

@@ -46,21 +46,17 @@ def response(flow: http.HTTPFlow) -> None:
             ctx.log.info(f"compare_json_data:{compare_json_data},method:{method}")
             log_error=generate_error_documentation(url_path,status_code,method,compare_json_data['differences'])
             save_to_json_file(log_error)
-            ctx.log.info(f"{log_error}")
             
             file_path = get_file_path(flow,json_schemas[url_path])
             generate_fix_data_script(compare_json_data['similarity'],file_path)
             fixed_req_content = fix_api(client_req, file_path)
 
             similarity=compare_json(json_schemas[url_path],json.loads(fixed_req_content))["similarity"]
-            i=1
             while compare_json(json_schemas[url_path],json.loads(fixed_req_content))["similarity"] != [] :
                 generate_fix_data_script(compare_json_data['similarity']+similarity,file_path)
                 #TODO:chof chnoi list mt3 similarity trier 3ala asses 9dach men '.' mawjoda lazem ykon men 0 l +inf bug lakano el 3aks wala m5alwdin
                 fixed_req_content = fix_api(client_req, file_path)
                 similarity+=compare_json(json_schemas[url_path],json.loads(fixed_req_content))["similarity"]
-                ctx.log.info(f"-----------{i} : {similarity}-------------")
-                i+=1
 
 
             headers = dict(original_client_flow.request.headers)
@@ -73,6 +69,7 @@ def response(flow: http.HTTPFlow) -> None:
                     cookies=original_client_flow.request.cookies,
                     content=fixed_req_content.encode('utf-8')
                 )
+            flow.response.status_code=response.status_code
             flow.response.content=response.content
                 
             

@@ -8,4 +8,7 @@ pydantic
 python-dotenv
 requests
 typing-extensions
+langchain-google-genai
+supabase
+sqlparse
 flask

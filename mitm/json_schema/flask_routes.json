@@ -4,7 +4,7 @@
             "POST"
         ],
         "function": "receive_json",
-        "code": "def receive_json():\n    try:\n        data = request.get_json()\n        return jsonify({\"second_name\":data['name'][\"second_name\"],\"name_first\":data['name'][\"first_name\"],\"message\":data[\"message\"],\"source\":data[\"source\"],\"age\":data[\"age\"]})\n    except Exception as e:\n        error_trace = traceback.format_exc()\n        return jsonify({\"traceback\":error_trace}), 400",
+        "code": "def receive_json():\n    try:\n        data = request.get_json()\n        age=data[\"age\"]\n        first_name=data[\"name\"][\"first_name\"]\n        second_name=data[\"name\"][\"second_name\"]\n        message=data[\"message\"]\n        source=data[\"source\"]\n        return jsonify({\"recieved_data\":\n        {\n            \"age\":age,\n            \"first_name\":first_name,\n            \"second_name\":second_name,\n            \"message\":message,\n            \"source\":source\n        }\n        })\n    except Exception :\n        error_trace = traceback.format_exc()\n        return jsonify({\"traceback\":error_trace}), 400",
         "file": "./backend/app.py"
     },
     "/add": {

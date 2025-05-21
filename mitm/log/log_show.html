@@ -327,14 +327,15 @@
       // Load log data from the server
       async function loadLogData() {
         try {
-          const response = await fetch('/log.json');
+          const response = await fetch("./log.json");
           if (!response.ok) {
-            throw new Error('Failed to fetch log data');
+            throw new Error("Failed to fetch log data");
           }
           logData = await response.json();
-          console.log('Log data loaded successfully:', logData);
+          console.log("response:" + logData);
+          console.log("Log data loaded successfully:", logData);
         } catch (error) {
-          console.error('Error loading log data:', error);
+          console.error("Error loading log data:", error);
           logData = {};
         }
       }

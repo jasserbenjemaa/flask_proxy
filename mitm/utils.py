@@ -62,6 +62,7 @@ def convert_to_json(data, content_type):
 
 def get_file_path(flow, backend_json):
     server_url = flow.request.url
+    
     method = flow.request.method
     content_type = flow.request.headers.get("Content-Type", "")
     
