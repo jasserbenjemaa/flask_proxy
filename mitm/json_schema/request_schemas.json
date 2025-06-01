@@ -5,7 +5,7 @@
       "first_name": "John",
       "second_name": "Doe"
     },
-    "message": "Hello, world!",
+    "message": "Hello, World!",
     "source": "API"
   },
   "/add": {
@@ -21,12 +21,12 @@
     },
     "history": [
       {
-        "timestamp": "2024-01-01T10:00:00Z",
+        "timestamp": "2023-10-26T10:00:00Z",
         "action": "login"
       },
       {
-        "timestamp": "2024-01-01T10:05:00Z",
-        "action": "viewed profile"
+        "timestamp": "2023-10-26T10:05:00Z",
+        "action": "viewed_profile"
       }
     ],
     "settings": {
@@ -34,8 +34,8 @@
     }
   },
   "/submit": {
-    "name": "John Doe",
-    "email": "john.doe@example.com",
-    "message": "This is a test message."
+    "name": "string",
+    "email": "string",
+    "message": "string"
   }
 }

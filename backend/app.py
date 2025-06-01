@@ -88,6 +88,7 @@ def handle_complex_json():
 def index():
     return render_template('index.html')
     
+    
 @app.route('/submit', methods=['POST'])
 def submit_form():
     logger.info("Received a POST request to /submit")

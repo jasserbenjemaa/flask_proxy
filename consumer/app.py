@@ -38,7 +38,6 @@ swagger_config = {
 swagger = Swagger(app, config=swagger_config)
 proxies = {'http': PROXY_URL}
 
-@
 @app.route('/send_with_proxy', methods=['POST'])
 def send_with_proxy():
     """
@@ -100,6 +99,7 @@ def send_direct():
       200:
         description: Direct response from backend
     """
+    
     data = request.get_json()
     response = requests.post(f"{BACKEND_URL}/receive", json=data)
     return response.json()

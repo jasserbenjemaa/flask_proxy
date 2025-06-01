@@ -80,20 +80,3 @@ if __name__ == "__main__":
     with open(file_path, 'w') as f:
          f.write(script)
     #return script
-
-
-# Example usage with more robust error handling
-if __name__ == "__main__":
-    # Example array of field similarity tuples
-    # Format: (incorrect_field_path, correct_field_path, similarity_score)
-    array = [
-        ('name.firt_name', 'name.first_name', 0.947),
-        ('sourc', 'source', 0.909),
-        ('name.secd_name', 'name.second_name', 0.9),
-        ('addrss.street', 'address.street', 0.93),
-        ('contct.phone', 'contact.phone', 0.89)
-    ]
-    
-    # Generate the script
-    
-    # Optional: Save the script to a file
