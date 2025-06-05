@@ -70,7 +70,8 @@ def send_with_proxy():
         description: Response from backend through proxy
     """
     data = request.get_json()
-    response = requests.post(f"{BACKEND_URL}/receive", proxies=proxies, json=data)
+    response = requests.post(f"{PROXY_URL}/receive", json=data)
+    #response = requests.post(f"{BACKEND_URL}/receive", proxies=proxies, json=data)
     return response.json()
 
 @app.route('/send_direct', methods=['POST'])

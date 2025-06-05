@@ -6,8 +6,6 @@ services:
       - container-net
     volumes:
       - ./consumer:/app
-    depends_on:
-      - mitm
     ports:
       - "3000:3000"
 
@@ -27,7 +25,7 @@ services:
     volumes:
         - ./llm:/llm 
     ports:
-      - "8000:8000"
+      - "6000:6000"
     networks:
       - container-net
 

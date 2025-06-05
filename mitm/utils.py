@@ -1,9 +1,11 @@
 from mitmproxy import ctx
+import re
 import os
 import subprocess
 import traceback
 import json
 import hashlib
+import socket
 
 def get_file_path(flow, backend_json):
     server_url = flow.request.url
@@ -227,3 +229,178 @@ def save_to_json_file(data, folder="log", file_name="log.json"):
     except Exception as e:
         ctx.log.error(f"Error saving to {file_name}: {str(e)}")
 
+def flow_info(flow,stage:str) -> None:
+    """Log comprehensive flow information"""
+    ctx.log.info(f"\n{'='*60}")
+    ctx.log.info(f"FLOW {stage}: {flow.request.pretty_url}")
+    ctx.log.info(f"{'='*60}")
+    
+    # Basic flow info
+    ctx.log.info(f"Method: {flow.request.method}")
+    ctx.log.info(f"URL: {flow.request.pretty_url}")
+    ctx.log.info(f"HTTP Version: {flow.request.http_version}")
+    ctx.log.info(f"Timestamp: {flow.request.timestamp_start}")
+    
+    # Request headers
+    ctx.log.info(f"\n--- REQUEST HEADERS ---")
+    for name, value in flow.request.headers.items():
+        ctx.log.info(f"{name}: {value}")
+    
+    # Request body
+    if flow.request.content:
+        ctx.log.info(f"\n--- REQUEST BODY ---")
+        try:
+            # Try to decode as text
+            body_text = flow.request.content.decode('utf-8')
+            if len(body_text) > 1000:  # Truncate very long bodies
+                ctx.log.info(f"{body_text[:1000]}... (truncated)")
+            else:
+                ctx.log.info(body_text)
+        except UnicodeDecodeError:
+            ctx.log.info(f"Binary content ({len(flow.request.content)} bytes)")
+    
+    # Response info (if available)
+    if flow.response:
+        ctx.log.info(f"\n--- RESPONSE INFO ---")
+        ctx.log.info(f"Status Code: {flow.response.status_code}")
+        ctx.log.info(f"Reason: {flow.response.reason}")
+        
+        # Response headers
+        ctx.log.info(f"\n--- RESPONSE HEADERS ---")
+        for name, value in flow.response.headers.items():
+            ctx.log.info(f"{name}: {value}")
+        
+        # Response body
+        if flow.response.content:
+            ctx.log.info(f"\n--- RESPONSE BODY ---")
+            try:
+                body_text = flow.response.content.decode('utf-8')
+                if len(body_text) > 1000:  # Truncate very long bodies
+                    ctx.log.info(f"{body_text[:1000]}... (truncated)")
+                else:
+                    ctx.log.info(body_text)
+            except UnicodeDecodeError:
+                ctx.log.info(f"Binary content ({len(flow.response.content)} bytes)")
+    
+    ctx.log.info(f"{'='*60}\n")
+    
+
+def check_provider(provider,port):
+    """Check if provider is available"""
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        result = sock.connect_ex((provider, port))
+        sock.close()
+        return result == 0
+    except:
+        return False
+        
+        
+        
+#####################################################
+
+def match_dynamic_route(request_path, routes_data):
+    """
+    Match a request path with dynamic routes in the JSON file.
+    
+    Args:
+        request_path (str): The actual request path (e.g., "/users/123")
+        routes_data (dict): The JSON data containing route definitions
+    
+    Returns:
+        dict: The matching route data or None if no match found
+    """
+    
+    # First, try exact match (for static routes)
+    if request_path in routes_data:
+        return routes_data[request_path]
+    
+    # Then try dynamic route matching
+    for route_pattern, route_data in routes_data.items():
+        if is_dynamic_route_match(request_path, route_pattern):
+            return route_data
+    
+    return None
+
+def is_dynamic_route_match(request_path, route_pattern):
+    """
+    Check if a request path matches a Flask dynamic route pattern.
+    
+    Args:
+        request_path (str): Actual request path (e.g., "/users/123")
+        route_pattern (str): Flask route pattern (e.g., "/users/<user_id>")
+    
+    Returns:
+        bool: True if the paths match
+    """
+    
+    # Convert Flask route pattern to regex
+    # Replace <variable> with regex pattern that matches anything except '/'
+    regex_pattern = re.sub(r'<[^>]+>', r'([^/]+)', route_pattern)
+    
+    # Add anchors to match the entire string
+    regex_pattern = f'^{regex_pattern}$'
+    
+    # Check if the request path matches the pattern
+    return bool(re.match(regex_pattern, request_path))
+
+def extract_route_parameters(request_path, route_pattern):
+    """
+    Extract parameter values from a request path using the route pattern.
+    
+    Args:
+        request_path (str): Actual request path (e.g., "/users/123")
+        route_pattern (str): Flask route pattern (e.g., "/users/<user_id>")
+    
+    Returns:
+        dict: Dictionary of parameter names and their values
+    """
+    
+    # Find all parameter names in the route pattern
+    param_names = re.findall(r'<([^>]+)>', route_pattern)
+    
+    # Convert route pattern to regex with capture groups
+    regex_pattern = re.sub(r'<[^>]+>', r'([^/]+)', route_pattern)
+    regex_pattern = f'^{regex_pattern}$'
+    
+    # Match and extract values
+    match = re.match(regex_pattern, request_path)
+    if match:
+        param_values = match.groups()
+        return dict(zip(param_names, param_values))
+    
+    return {}
+
+# Example usage function
+def find_route_pattern(request_path, routes_json_file_path=None, routes_data=None):
+    """
+    Find the route pattern for a given request path.
+    
+    Args:
+        request_path (str): The request path to match
+        routes_json_file_path (str): Path to JSON file (optional)
+        routes_data (dict): Routes data dictionary (optional)
+    
+    Returns:
+        str: The matching route pattern or None if no match found
+    """
+    
+    # Load routes data if file path provided
+    if routes_json_file_path and not routes_data:
+        with open(routes_json_file_path, 'r') as f:
+            routes_data = json.load(f)
+    
+    if not routes_data:
+        raise ValueError("Either routes_json_file_path or routes_data must be provided")
+    
+    # Check exact match first
+    if request_path in routes_data:
+        return request_path
+    
+    # Check dynamic routes
+    for route_pattern in routes_data.keys():
+        if is_dynamic_route_match(request_path, route_pattern):
+            return route_pattern
+    
+    return None

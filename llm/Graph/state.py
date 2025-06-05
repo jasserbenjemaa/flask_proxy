@@ -10,6 +10,8 @@ class GraphState(TypedDict):
     Attributes:
         code:flask code
         client_req:client request
+        url:url of the endpoint
+        supabase_res: the response returned by supabase
         go_to:go to the sql_exec or func_exec
         funcs_result: dict contains all function results
         sqls_result: dict contains all sql results
@@ -19,6 +21,8 @@ class GraphState(TypedDict):
 
     code:str
     client_req:str
+    url:str
+    supabase_res:Dict[str,Any]
     go_to:str
     funcs_result: List[Dict[str, Any]]#[{result:str,func_code:str,valid:bool}]
     sqls_result: List[Dict[str, Any]]#[{result:str,sql_code:str,valid:bool}]

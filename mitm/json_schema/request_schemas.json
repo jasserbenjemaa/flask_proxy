@@ -1,41 +1,30 @@
 {
-  "/receive": {
-    "age": "30",
-    "name": {
-      "first_name": "John",
-      "second_name": "Doe"
-    },
-    "message": "Hello, World!",
-    "source": "API"
-  },
-  "/add": {
-    "user": {
-      "id": 123,
-      "name": {
-        "first": "John",
-        "last": "Doe"
-      }
-    },
-    "preferences": {
-      "notifications": true
-    },
-    "history": [
-      {
-        "timestamp": "2023-10-26T10:00:00Z",
-        "action": "login"
-      },
-      {
-        "timestamp": "2023-10-26T10:05:00Z",
-        "action": "viewed_profile"
-      }
-    ],
-    "settings": {
-      "theme": "dark"
-    }
-  },
-  "/submit": {
+  "/users": {
     "name": "string",
     "email": "string",
-    "message": "string"
+    "age": 25
+  },
+  "/users/<user_id>": {
+    "id": "string",
+    "created_at": "string",
+    "updated_at": "string",
+    "username": "string",
+    "email": "string",
+    "profile_picture": "string",
+    "is_active": true,
+    "role": "string"
+  },
+  "/users/bulk": {
+    "users": [
+      {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "age": 30
+      },
+      {
+        "name": "Jane Smith",
+        "email": "jane.smith@example.com"
+      }
+    ]
   }
 }
