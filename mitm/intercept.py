@@ -3,7 +3,7 @@ import os
 import traceback
 import httpx
 import json
-from utils import fix_api, get_file_path,read_json_file,generate_error_documentation,save_to_json_file,flow_info,check_provider,find_route_pattern
+from utils import fix_api, get_file_path,read_json_file,generate_error_documentation,save_to_json_file,check_provider,find_route_pattern
 from generate_fix_data_script import generate_fix_data_script
 from compare_json import compare_json
 from urllib.parse import urlparse
@@ -24,18 +24,27 @@ def request(flow: http.HTTPFlow) -> None:
     try:
         url_path = flow.request.path
         url_pattern = find_route_pattern(url_path, routes_data=codes)
-        if flow.request.content:
-            # Parse and potentially fix the request content
-            file_path = get_file_path(flow,json_schemas.get(url_pattern,""))
-            fixed_req_content = fix_api(flow.request.content.decode('utf-8'), file_path)
-            flow.request.content = fixed_req_content.encode("utf-8")
+        
             
         if check_provider(provider_name,provider_port):
             flow.request.url=BACKEND_URL+url_path
+            if flow.request.content:
+                
+                # Parse and potentially fix the request content
+                file_path = get_file_path(flow,json_schemas.get(url_pattern,""))
+                fixed_req_content = fix_api(flow.request.content.decode('utf-8'), file_path)
+                flow.request.content = fixed_req_content.encode("utf-8")
+                
         else:
+            
                     # FIX: Handle bytes content properly
                     client_req_content = ""
                     if flow.request.content:
+                    # Parse and potentially fix the request content
+                        file_path = get_file_path(flow,json_schemas.get(url_pattern,""))
+                        fixed_req_content = fix_api(flow.request.content.decode('utf-8'), file_path)
+                        flow.request.content = fixed_req_content.encode("utf-8")
+                        
                         try:
                             # Try to decode as UTF-8 string
                             client_req_content = flow.request.content.decode('utf-8')
@@ -60,7 +69,7 @@ def request(flow: http.HTTPFlow) -> None:
                     flow.request.headers["Content-Length"] = str(len(flow.request.content))  # Update content length
          
             
-        flow_info(flow,"REQUEST")
+        #flow_info(flow,"REQUEST")
         global original_client_flow
         original_client_flow = flow.copy()
     except Exception as e:
@@ -104,15 +113,19 @@ def response(flow: http.HTTPFlow) -> None:
             headers = dict(original_client_flow.request.headers)
             headers['Content-Length'] = str(len(fixed_req_content.encode('utf-8')))
             with httpx.Client() as client:
-                response = client.request(
-                    method=original_client_flow.request.method,
-                    url=original_client_flow.request.url,
-                    headers=headers,
-                    cookies=original_client_flow.request.cookies,
-                    content=fixed_req_content.encode('utf-8')
-                )
-            flow.response.status_code=response.status_code
-            flow.response.content=response.content
+                try:
+                    response = client.request(
+                        method=original_client_flow.request.method,
+                        url=original_client_flow.request.url,
+                        headers=headers,
+                        cookies=original_client_flow.request.cookies,
+                        content=fixed_req_content.encode('utf-8'),
+                        timeout=httpx.Timeout(10.0)  # 10 seconds total timeout
+                    )
+                    flow.response.status_code=response.status_code
+                    flow.response.content=response.content
+                except httpx.TimeoutException as e:
+                    ctx.log.error(f"Request timed out: {e}")
                 
             
     except Exception as e:

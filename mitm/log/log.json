@@ -1,7 +1,7 @@
 {
   "/users": {
     "error": {
-      "cause": "Missing required field(s): 'age', 'email'. Unexpected field(s): 'e-mail', 'ge'",
+      "cause": "Missing required field(s): 'email', 'age'. Unexpected field(s): 'ge', 'e-iil'",
       "description": "The API request is malformed or contains invalid parameters.",
       "message": "Bad Request"
     },
