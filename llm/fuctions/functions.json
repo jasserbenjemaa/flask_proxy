@@ -1,0 +1,259 @@
+{
+  "metadata": {
+    "total_functions": 13,
+    "regular_functions": 13,
+    "methods": 0,
+    "async_functions": 0,
+    "files_processed": 1
+  },
+  "functions": {
+    "handle_supabase_response": {
+      "name": "handle_supabase_response",
+      "file": "backend/app.py",
+      "line_number": 30,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "response"
+      ],
+      "defaults": [],
+      "decorators": [],
+      "docstring": null,
+      "source_lines": [
+        30,
+        36
+      ]
+    },
+    "create_user": {
+      "name": "create_user",
+      "file": "backend/app.py",
+      "line_number": 40,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users', methods=['POST'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        40,
+        69
+      ]
+    },
+    "get_all_users": {
+      "name": "get_all_users",
+      "file": "backend/app.py",
+      "line_number": 73,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users', methods=['GET'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        73,
+        94
+      ]
+    },
+    "get_user": {
+      "name": "get_user",
+      "file": "backend/app.py",
+      "line_number": 98,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "user_id"
+      ],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users/<user_id>', methods=['GET'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        98,
+        109
+      ]
+    },
+    "search_users": {
+      "name": "search_users",
+      "file": "backend/app.py",
+      "line_number": 113,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users/search', methods=['GET'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        113,
+        134
+      ]
+    },
+    "update_user": {
+      "name": "update_user",
+      "file": "backend/app.py",
+      "line_number": 138,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "user_id"
+      ],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users/<user_id>', methods=['PUT'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        138,
+        177
+      ]
+    },
+    "patch_user": {
+      "name": "patch_user",
+      "file": "backend/app.py",
+      "line_number": 181,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "user_id"
+      ],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users/<user_id>', methods=['PATCH'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        181,
+        214
+      ]
+    },
+    "delete_user": {
+      "name": "delete_user",
+      "file": "backend/app.py",
+      "line_number": 218,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "user_id"
+      ],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users/<user_id>', methods=['DELETE'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        218,
+        240
+      ]
+    },
+    "health_check": {
+      "name": "health_check",
+      "file": "backend/app.py",
+      "line_number": 244,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [],
+      "defaults": [],
+      "decorators": [
+        "app.route('/health', methods=['GET'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        244,
+        263
+      ]
+    },
+    "create_bulk_users": {
+      "name": "create_bulk_users",
+      "file": "backend/app.py",
+      "line_number": 267,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [],
+      "defaults": [],
+      "decorators": [
+        "app.route('/users/bulk', methods=['POST'])"
+      ],
+      "docstring": null,
+      "source_lines": [
+        267,
+        302
+      ]
+    },
+    "not_found": {
+      "name": "not_found",
+      "file": "backend/app.py",
+      "line_number": 306,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "error"
+      ],
+      "defaults": [],
+      "decorators": [
+        "app.errorhandler(404)"
+      ],
+      "docstring": null,
+      "source_lines": [
+        306,
+        307
+      ]
+    },
+    "method_not_allowed": {
+      "name": "method_not_allowed",
+      "file": "backend/app.py",
+      "line_number": 310,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "error"
+      ],
+      "defaults": [],
+      "decorators": [
+        "app.errorhandler(405)"
+      ],
+      "docstring": null,
+      "source_lines": [
+        310,
+        311
+      ]
+    },
+    "internal_error": {
+      "name": "internal_error",
+      "file": "backend/app.py",
+      "line_number": 314,
+      "is_async": false,
+      "is_method": false,
+      "class_name": null,
+      "arguments": [
+        "error"
+      ],
+      "defaults": [],
+      "decorators": [
+        "app.errorhandler(500)"
+      ],
+      "docstring": null,
+      "source_lines": [
+        314,
+        315
+      ]
+    }
+  }
+}

@@ -25,7 +25,6 @@ def request(flow: http.HTTPFlow) -> None:
         url_path = flow.request.path
         url_pattern = find_route_pattern(url_path, routes_data=codes)
         
-            
         if check_provider(provider_name,provider_port):
             flow.request.url=BACKEND_URL+url_path
             if flow.request.content:
@@ -34,39 +33,36 @@ def request(flow: http.HTTPFlow) -> None:
                 file_path = get_file_path(flow,json_schemas.get(url_pattern,""))
                 fixed_req_content = fix_api(flow.request.content.decode('utf-8'), file_path)
                 flow.request.content = fixed_req_content.encode("utf-8")
-                
         else:
+            # FIX: Handle bytes content properly
+            client_req_content = ""
+            if flow.request.content:
+            # Parse and potentially fix the request content
+                file_path = get_file_path(flow,json_schemas.get(url_pattern,""))
+                fixed_req_content = fix_api(flow.request.content.decode('utf-8'), file_path)
+                flow.request.content = fixed_req_content.encode("utf-8")
+                try:
+                    # Try to decode as UTF-8 string
+                    client_req_content = flow.request.content.decode('utf-8')
+                except UnicodeDecodeError:
+                    # If it's binary data, encode as base64 or handle differently
+                    import base64
+                    client_req_content = base64.b64encode(flow.request.content).decode('utf-8')
+                    # Or you could skip binary content
+                    # client_req_content = "[BINARY_DATA]"
             
-                    # FIX: Handle bytes content properly
-                    client_req_content = ""
-                    if flow.request.content:
-                    # Parse and potentially fix the request content
-                        file_path = get_file_path(flow,json_schemas.get(url_pattern,""))
-                        fixed_req_content = fix_api(flow.request.content.decode('utf-8'), file_path)
-                        flow.request.content = fixed_req_content.encode("utf-8")
-                        
-                        try:
-                            # Try to decode as UTF-8 string
-                            client_req_content = flow.request.content.decode('utf-8')
-                        except UnicodeDecodeError:
-                            # If it's binary data, encode as base64 or handle differently
-                            import base64
-                            client_req_content = base64.b64encode(flow.request.content).decode('utf-8')
-                            # Or you could skip binary content
-                            # client_req_content = "[BINARY_DATA]"
-                    
-                    llm_req = {
-                        "client_req": client_req_content,  # Now it's a string, not bytes
-                        "url": BACKEND_URL + url_path,
-                        "code": codes.get(url_pattern, {}).get("code", "")
-                    }
-                    
-                    flow.request.url = "http://llm:6000/"
-                    flow.request.method = "POST"  # Change to POST for JSON data
-                    flow.request.headers["Content-Type"] = "application/json"  # Set content type
-                    data = json.dumps(llm_req)  # This should work now
-                    flow.request.content = data.encode('utf-8')
-                    flow.request.headers["Content-Length"] = str(len(flow.request.content))  # Update content length
+            llm_req = {
+                "client_req": client_req_content,  # Now it's a string, not bytes
+                "url": BACKEND_URL + url_path,
+                "code": codes.get(url_pattern, {}).get("code", "")
+            }
+            
+            flow.request.url = "http://llm:6000/"
+            flow.request.method = "POST"  # Change to POST for JSON data
+            flow.request.headers["Content-Type"] = "application/json"  # Set content type
+            data = json.dumps(llm_req)  # This should work now
+            flow.request.content = data.encode('utf-8')
+            flow.request.headers["Content-Length"] = str(len(flow.request.content))  # Update content length
          
             
         #flow_info(flow,"REQUEST")

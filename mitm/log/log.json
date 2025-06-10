@@ -1,11 +1,20 @@
 {
   "/users": {
     "error": {
-      "cause": "Missing required field(s): 'email', 'age'. Unexpected field(s): 'ge', 'e-iil'",
+      "cause": "Missing required field(s): 'email', 'name'. Unexpected field(s): 'nme', 'emil'",
       "description": "The API request is malformed or contains invalid parameters.",
       "message": "Bad Request"
     },
     "method": "POST",
     "status_code": 400
+  },
+  "/users/<user_id>": {
+    "error": {
+      "cause": "Missing required field(s): 'profile_picture', 'created_at', 'role', 'id', 'is_active', 'updated_at'",
+      "description": "An unexpected error occurred while processing the request.",
+      "message": "Internal Server Error"
+    },
+    "method": "PATCH",
+    "status_code": 500
   }
 }

@@ -8,9 +8,6 @@ import hashlib
 import socket
 
 def get_file_path(flow, backend_json):
-    server_url = flow.request.url
-    
-    method = flow.request.method
     
     def extract_all_fields(data, prefix=""):
         """Recursively extract all fields and sub-fields from a dictionary"""
@@ -37,17 +34,17 @@ def get_file_path(flow, backend_json):
         # Combine all fields for the filename
         all_fields = sorted(set(client_fields + backend_fields))
         str_key = "_".join(all_fields)
+        ctx.log.info(f"--------str_key:{str_key}---------")
         
         # Generate filename based on URL, method, and fields
-        file_name = f"{str(server_url).replace('http://','').replace('/','_')}_{method}_{str_key}"
-        hash_file_name = hashlib.md5(file_name.encode()).hexdigest()
+        hash_file_name = hashlib.md5(str_key.encode()).hexdigest()
         return f"api_correction_scripts/{hash_file_name}.py"
     except Exception as e:
         ctx.log.error(f"Error generating file path: {e}")
         # Fallback to a simpler hash if there's an error
-        simple_name = f"{server_url}_{method}"
-        hash_file_name = hashlib.md5(simple_name.encode()).hexdigest()
-        return f"api_correction_scripts/fallback_{hash_file_name}.py"
+        server_url = flow.request.url
+        simple_name = server_url
+        return f"api_correction_scripts/fallback_{simple_name}.py"
 
 def fix_api(api, file_path):
     try:
