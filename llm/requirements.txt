@@ -10,5 +10,6 @@ requests
 typing-extensions
 langchain-google-genai
 supabase
-sqlparse
 flask
+requests
+flask-cors==4.0.0

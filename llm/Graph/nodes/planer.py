@@ -1,155 +1,338 @@
 import os
-from typing import Literal, Dict, Any
-
-from langchain_core.prompts import ChatPromptTemplate
+import json
+from typing import Dict, Any,  Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
-from pydantic import BaseModel, Field
-
+from langchain.prompts import ChatPromptTemplate
+from dotenv import load_dotenv
 from Graph.state import GraphState
 
-
-class PlannerOutput(BaseModel):
-  go_to: Literal["sql_exec", "func_exec"] = Field(
-    ...,
-    description="specify any node to go to sql_exec where execute sql or func_exec where execute function"
-  )
-  function_name: str = Field(description="specify the function name that you want its results")
-  function_args: Dict[str, Any] = Field(description="specify the function arguments that will be passed to it")
-  sql_snippet: str = Field(default="", description="extracted sql snippet from the flask code")
-  the_final_result: Any = Field(description="the result of the code provided")
-  is_there_err: str = Field(description="return the error if there is a problem in the code ")
+load_dotenv()
 
 
-def planer(state: GraphState) -> Dict[str, Any]:
-
-  llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-preview-04-17",
-    google_api_key=os.getenv("GEMINI_API_KEY"),
-  )
-
-  llm_structured_output = llm.with_structured_output(PlannerOutput)
-  system_prompt = """
-      Analyze the Flask code and client request to determine whether to route to SQL execution or function execution.
-
-      ## Your Task
-      1. Identify the route handling this request
-      2. Determine if it uses SQL execution (any `execute()` methods, ORM queries) → extract the code snippet and route to `sql_exec` 
-      so he can understand the code and return to the results
-      3. If no SQL, identify function calls → route to `func_exec`
-      4. Extract relevant function name and arguments
-      5. If SQL is present, extract the SQL snippet
-      6. Predict the expected result structure
+class FlaskCodePlanner:
+  """
+  Intelligent planner that analyzes Flask code, predicts function outputs using LLM,
+  then proceeds to SQL execution and formatting
   """
 
-  user_prompt = """
-      ### Flask Code
-      ```python
-      {flask_code}
-      ```
+  def __init__(self, functions_json_path: Optional[str] = None):
+    self.llm = ChatGoogleGenerativeAI(
+      model="gemini-2.5-flash-preview-04-17",
+      google_api_key=os.getenv("GEMINI_API_KEY"),
+    )
 
-      ### Client Request
-      ```
-      {client_request}
-      ```
+    # Load function definitions
+    self.function_definitions = {}
+    if functions_json_path:
+      self.load_function_definitions(functions_json_path)
 
-      This is the old calls results of:
-      - Function executions: {function_exec}
-      - SQL executions: {sql_exec}
+    # Prompt for analyzing Flask code and determining functions to predict
+    self.analysis_prompt = ChatPromptTemplate.from_messages([
+      ("system", """You are a Flask code analyzer. Your job is to analyze Flask route code and identify all function calls that need to be predicted/simulated.
 
-      ## Example
-      For SQL-based code like:
-      ```python
-      @app.route('/users/<int:user_id>')
-      def get_user(user_id):
-          cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-          user = cursor.fetchone()
-          return jsonify({"id": user[0], "name": user[1]})
-      ```
+Available functions with their definitions:
+{function_definitions}
 
-      With request `GET /users/123`, your response should be:
-      ```json
-      {
-        "go_to": "sql_exec",
-        "function_name": "get_user",
-        "function_args": {"user_id": 123},
-        "sql_snippet": "SELECT * FROM users WHERE id = %s",
-        "the_final_result": {"id": 123, "name": "Example Name"},
-        "is_there_err": "no"
-      }
-      ```
+Your task:
+1. Identify all function calls in the Flask code
+2. Only consider functions that are available in the function definitions
+3. Determine the order of function execution based on dependencies
+4. Extract parameters that would be passed to each function
+5. Identify what data each function would need (from request, URL params, etc.)
 
-      For function-based code (no SQL):
-      ```python
-      @app.route('/calculate')
-      def calculate():
-          x = request.args.get('x', type=int)
-          y = request.args.get('y', type=int)
-          result = add_numbers(x, y)
-          return jsonify({"result": result})
-      ```
+Return a JSON response with:
+{{
+    "functions_to_predict": [
+        {{
+            "function_name": "function_name",
+            "parameters": {{"param1": "value1", "param2": "value2"}},
+            "depends_on": ["list_of_dependencies"],
+            "context": "description of what this function does in the route"
+        }}
+    ],
+    "execution_order": ["function1", "function2", "function3"],
+    "has_database_operations": true/false
+}}
 
-      With request `GET /calculate?x=5&y=10`, your response should be:
-      ```json
-      {
-        "go_to": "func_exec",
-        "function_name": "add_numbers",
-        "function_args": {"x": 5, "y": 10},
-        "sql_snippet": "",
-        "the_final_result": {"result": 15},
-        "is_there_err": "no"
-      }
-      ```
-      Attention: this is in case if there is errors and you can proceed predict the best response that the backend can give and return it 
-      don't return error .
-      """
+IMPORTANT: Only include functions that exist in the available function definitions."""),
+      ("human", """Analyze this Flask code:
 
-  prompt = ChatPromptTemplate.from_messages([
-    ("system", system_prompt),
-    ("human", user_prompt)
-  ])
+Flask Code:
+{flask_code}
 
-  # Format and invoke the prompt
-  formatted_prompt = prompt.format(
-    flask_code=state.get('code', ''),
-    client_request=state.get('client_req', ''),
-    function_exec=state.get('funcs_result', []),
-    sql_exec=state.get('sqls_result', [])
-  )
+Client Request Data:
+{client_request}
 
-  # Use the LLM with structured output
-  result = llm_structured_output.invoke(formatted_prompt)
+URL Information:
+{url}
 
-  # Update state based on route decision
-  if result["go_to"] == "sql_exec":
-    # Add new SQL result entry
-    sql_results = state.get('sqls_result', [])
-    sql_results.append({
-      "result": None,  # Will be filled by sql_exec node
-      "sql_code": result["sql_snippet"],
-      "valid": False  # Will be updated by evaluator node
-    })
+Identify functions to predict and their execution order.""")
+    ])
 
-    new_state = {
-      "go_to": result["go_to"],
-      "sqls_result": sql_results,
-      "the_final_result": {"result": result['the_final_result']},
-      "error": result["is_there_err"]
+    # Prompt for predicting function outputs
+    self.prediction_prompt = ChatPromptTemplate.from_messages([
+      ("system", """You are a function execution predictor. Given a function definition and its expected parameters, predict what the function would return.
+
+Function Definition:
+{function_definition}
+
+Your task:
+1. Understand what the function does based on its code
+2. Use the provided parameters to simulate execution
+3. Consider the context of how it's being called in the Flask route
+4. Return a realistic output that the function would produce
+
+IMPORTANT RULES:
+- Return only the predicted output/return value
+- If function returns JSON, return valid JSON
+- If function returns a string, return the string
+- If function returns a number, return the number
+- If function returns a complex object, return a realistic representation
+- Consider error cases - if parameters are invalid, return appropriate error response
+- Be realistic about what the function would actually do
+
+Response format: Return ONLY the predicted function output, no explanations."""),
+      ("human", """Predict the output for this function call:
+
+Function Name: {function_name}
+Parameters: {parameters}
+Context: {context}
+Additional Data Available: {additional_data}
+
+What would this function return?""")
+    ])
+
+  def load_function_definitions(self, json_path: str):
+    """Load function definitions from JSON file"""
+    try:
+      with open(json_path, 'r', encoding='utf-8') as f:
+        self.function_definitions = json.load(f)
+      print(f"✅ Loaded {len(self.function_definitions)} function definitions")
+    except FileNotFoundError:
+      print(f"❌ Functions JSON file not found: {json_path}")
+      self.function_definitions = {}
+    except json.JSONDecodeError as e:
+      print(f"❌ Invalid JSON in functions file: {e}")
+      self.function_definitions = {}
+
+  def set_function_definitions(self, functions_dict: Dict[str, Any]):
+    """Set function definitions directly from dictionary"""
+    self.function_definitions = functions_dict
+
+  def analyze_flask_code(self, flask_code: str, client_request: Dict[str, Any] = None, url: str = "") -> Dict[str, Any]:
+    """Analyze Flask code to identify functions that need prediction"""
+    try:
+      # Prepare function definitions for prompt
+      func_defs_str = json.dumps(self.function_definitions,
+                                 indent=2) if self.function_definitions else "No functions available"
+
+      messages = self.analysis_prompt.format_messages(
+        flask_code=flask_code,
+        function_definitions=func_defs_str,
+        client_request=json.dumps(client_request or {}, indent=2),
+        url=url
+      )
+
+      response = self.llm.invoke(messages)
+
+      try:
+        result = json.loads(response.content.strip())
+        return result
+      except json.JSONDecodeError:
+        # Fallback analysis
+        return self.fallback_analysis(flask_code)
+
+    except Exception as e:
+      print(f"❌ Flask code analysis failed: {e}")
+      return self.fallback_analysis(flask_code)
+
+  def fallback_analysis(self, flask_code: str) -> Dict[str, Any]:
+    """Simple fallback analysis when LLM fails"""
+    import re
+
+    functions_found = []
+    available_func_names = list(self.function_definitions.keys())
+
+    # Find function calls in code
+    for func_name in available_func_names:
+      pattern = rf'{func_name}\s*\('
+      if re.search(pattern, flask_code):
+        functions_found.append({
+          "function_name": func_name,
+          "parameters": {},
+          "depends_on": [],
+          "context": f"Function {func_name} called in Flask route"
+        })
+
+    return {
+      "functions_to_predict": functions_found,
+      "execution_order": [f["function_name"] for f in functions_found],
+      "has_database_operations": bool(
+        re.search(r'supabase\.table\(|\.select\(|\.insert\(|\.update\(', flask_code, re.IGNORECASE))
     }
-  else:  # func_exec
-    # Add new function result entry
-    func_results = state.get('funcs_result', [])
-    func_results.append({
-      "result": None,  # Will be filled by func_exec node
-      "func_code": result["function_name"],
-      "args": result["function_args"],
-      "valid": False  # Will be updated by evaluator node
-    })
 
-    new_state = {
-      "go_to": result["go_to"],
-      "funcs_result": func_results,
-      "the_final_result": {"result": result['the_final_result']},
-      "error": result["is_there_err"]
+  def predict_function_output(self, function_name: str, parameters: Dict[str, Any] = None,
+                              context: str = "", additional_data: Dict[str, Any] = None) -> Any:
+    """Predict what a function would return using LLM"""
+    try:
+      if function_name not in self.function_definitions:
+        return f"Error: Function {function_name} not found in definitions"
+
+      function_def = self.function_definitions[function_name]
+
+      messages = self.prediction_prompt.format_messages(
+        function_name=function_name,
+        function_definition=json.dumps(function_def, indent=2),
+        parameters=json.dumps(parameters or {}, indent=2),
+        context=context,
+        additional_data=json.dumps(additional_data or {}, indent=2)
+      )
+
+      response = self.llm.invoke(messages)
+      predicted_output = response.content.strip()
+
+      # Try to parse as JSON if it looks like JSON
+      if predicted_output.startswith('{') or predicted_output.startswith('['):
+        try:
+          return json.loads(predicted_output)
+        except json.JSONDecodeError:
+          pass
+
+      # Try to parse as number
+      try:
+        if '.' in predicted_output:
+          return float(predicted_output)
+        else:
+          return int(predicted_output)
+      except ValueError:
+        pass
+
+      # Return as string
+      return predicted_output
+
+    except Exception as e:
+      return f"Error predicting {function_name}: {str(e)}"
+
+  def predict_all_functions(self, analysis_result: Dict[str, Any],
+                            client_request: Dict[str, Any] = None, url: str = "") -> Dict[str, Any]:
+    """Predict outputs for all identified functions"""
+    predicted_results = {}
+    additional_data = {
+      "client_request": client_request or {},
+      "url": url,
+      "predicted_results": predicted_results  # Allow functions to depend on previous results
     }
 
-  return new_state
+    functions_to_predict = analysis_result.get("functions_to_predict", [])
+    execution_order = analysis_result.get("execution_order", [])
+
+    # Execute functions in order
+    for func_name in execution_order:
+      # Find function details
+      func_details = next((f for f in functions_to_predict if f["function_name"] == func_name), None)
+      if not func_details:
+        continue
+
+      print(f"🔮 Predicting output for: {func_name}")
+
+      # Update additional data with previous results
+      additional_data["predicted_results"] = predicted_results
+
+      predicted_output = self.predict_function_output(
+        function_name=func_name,
+        parameters=func_details.get("parameters", {}),
+        context=func_details.get("context", ""),
+        additional_data=additional_data
+      )
+
+      predicted_results[func_name] = predicted_output
+      print(f"✅ Predicted result for {func_name}: {predicted_output}")
+
+    return predicted_results
+
+
+def planner_node(state: GraphState) -> Dict[str, Any]:
+  """
+  Main planner node that predicts function outputs, then proceeds to SQL and formatting
+
+  Args:
+      state: Current GraphState containing code, function definitions, and other data
+
+  Returns:
+      Updated state with predicted function results and next action
+  """
+  try:
+    # Extract information from state
+    flask_code = state.get("code", "")
+    functions_json_path = state.get("functions_json_path")
+    client_request = state.get("client_req", {})
+    url = state.get("url", "")
+
+    if not flask_code.strip():
+      return {
+        "next_action": "error",
+        "error": "No Flask code provided for planning"
+      }
+
+    # Initialize planner
+    planner = FlaskCodePlanner()
+
+    # Load function definitions
+    if functions_json_path:
+      planner.load_function_definitions(functions_json_path)
+
+    if not planner.function_definitions:
+      print("⚠️  No function definitions loaded, proceeding without function prediction")
+
+    # Step 1: Analyze Flask code
+    print("🔍 Analyzing Flask code...")
+    analysis_result = planner.analyze_flask_code(flask_code, client_request, url)
+
+    # Step 2: Predict function outputs
+    print("🔮 Predicting function outputs...")
+    predicted_functions = planner.predict_all_functions(analysis_result, client_request, url)
+
+    # Step 3: Determine next action
+    has_db_operations = analysis_result.get("has_database_operations", False)
+
+    if has_db_operations:
+      next_action = "run_sql"
+    else:
+      next_action = "finalize"
+
+
+    print(f"✅ Planning complete. Next action: {next_action}")
+    print(f"📊 Predicted {len(predicted_functions)} function outputs")
+
+    return {
+      "funcs_result": predicted_functions,
+      "function_analysis": analysis_result,
+      "next_action": next_action,
+    }
+
+  except Exception as e:
+    print(f"❌ Planning failed: {e}")
+    return {
+      "next_action": "error",
+      "error": f"Planning failed: {str(e)}"
+    }
+
+
+def should_continue_planning(state: GraphState) -> str:
+  """
+  Conditional edge function to determine the next step after planning
+
+  Args:
+      state: Current GraphState
+
+  Returns:
+      String indicating the next node to execute
+  """
+  next_action = state.get("next_step")
+
+  if next_action == "run_sql":
+    return "sql_exec"
+  else:
+    # Default to formatter
+    return "formatter"
+

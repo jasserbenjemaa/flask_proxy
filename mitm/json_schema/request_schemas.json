@@ -1,8 +1,8 @@
 {
   "/users": {
     "name": "string",
-    "email": "string",
-    "age": 25
+    "email": "string@example.com",
+    "age": "string"
   },
   "/users/<user_id>": {
     "id": "string",
@@ -10,16 +10,15 @@
     "updated_at": "string",
     "username": "string",
     "email": "string",
-    "profile_picture": "string",
-    "is_active": true,
-    "role": "string"
+    "full_name": "string",
+    "is_active": true
   },
   "/users/bulk": {
     "users": [
       {
         "name": "John Doe",
         "email": "john.doe@example.com",
-        "age": 30
+        "age": "30"
       },
       {
         "name": "Jane Smith",
