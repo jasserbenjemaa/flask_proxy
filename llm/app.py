@@ -32,7 +32,7 @@ class GraphWorkflowAPI:
       print(f"❌ Failed to initialize graph: {e}")
       self.graph_app = None
 
-  def process_code(self, code: str, client_req: Dict[str, Any] = None, url: str = "") -> Dict[str, Any]:
+  def process_code(self, code: str,table_name:str="", client_req: Dict[str, Any] = None, url: str = "") -> Dict[str, Any]:
     """
         Process Flask code through the graph workflow
 
@@ -40,6 +40,7 @@ class GraphWorkflowAPI:
             code: Flask code to analyze and execute
             client_req: Client request data
             url: URL endpoint information
+            table_name: the table of the db
 
         Returns:
             Dictionary containing the workflow result
@@ -56,6 +57,7 @@ class GraphWorkflowAPI:
       "code": code,
       "client_req": client_req or {},
       "url": url,
+      "table_name":table_name,
       "functions_json_path": "sample_functions.json",
       "go_to": "",
       "funcs_result": [],
@@ -126,6 +128,7 @@ def process_flask_code():
 
     client_req = data.get('client_req', {})
     url = data.get('url', '')
+    table_name=data.get('table_name',"")
 
     # Log the request (optional)
     if app.config['DEBUG']:
@@ -134,10 +137,8 @@ def process_flask_code():
       print(f"🔗 URL: {url}")
 
     # Process through workflow
-    result = workflow_api.process_code(code, client_req, url)
+    result = workflow_api.process_code(code, client_req, url,table_name)
 
-    # Return appropriate status code
-    status_code = 200 if result['success'] else 500
 
     return jsonify(result)
 
@@ -225,6 +226,6 @@ if __name__ == '__main__':
 
   app.run(
     host=os.getenv('FLASK_HOST', '0.0.0.0'),
-    port=int(os.getenv('FLASK_PORT', 5000)),
+    port=int(os.getenv('FLASK_PORT', 6000)),
     debug=app.config['DEBUG']
   )

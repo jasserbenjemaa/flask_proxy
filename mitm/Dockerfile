@@ -4,6 +4,7 @@ WORKDIR /mitm
 COPY . .
 
 ENV BACKEND_URL=http://backend:5100
+ENV TABLE_NAME=users
 
 RUN apt-get update
 RUN pip install -r requirements.txt

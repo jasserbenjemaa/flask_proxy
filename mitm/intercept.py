@@ -9,6 +9,7 @@ from compare_json import compare_json
 from urllib.parse import urlparse
 
 BACKEND_URL = os.environ.get('BACKEND_URL', 'http://backend:5100')
+TABLE_NAME=os.environ.get('TABLE_NAME','users')
 parsed = urlparse(BACKEND_URL)
 provider_name = parsed.hostname  # "backend"
 provider_port = parsed.port 
@@ -54,10 +55,11 @@ def request(flow: http.HTTPFlow) -> None:
             llm_req = {
                 "client_req": client_req_content,  # Now it's a string, not bytes
                 "url": BACKEND_URL + url_path,
-                "code": codes.get(url_pattern, {}).get("code", "")
+                "code": codes.get(url_pattern, {}).get("code", ""),
+                "table_name":TABLE_NAME
             }
             
-            flow.request.url = "http://llm:6000/"
+            flow.request.url = "http://llm:6000/process"
             flow.request.method = "POST"  # Change to POST for JSON data
             flow.request.headers["Content-Type"] = "application/json"  # Set content type
             data = json.dumps(llm_req)  # This should work now
