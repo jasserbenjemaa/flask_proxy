@@ -1,29 +1,37 @@
 {
   "/users": {
-    "name": "string",
-    "email": "string@example.com",
-    "age": "string"
+    "POST": {
+      "name": "string",
+      "email": "string",
+      "age": "string"
+    }
   },
   "/users/<user_id>": {
-    "id": "string",
-    "created_at": "string",
-    "updated_at": "string",
-    "username": "string",
-    "email": "string",
-    "full_name": "string",
-    "is_active": true
+    "PUT": {
+      "name": "string",
+      "email": "string",
+      "age": 0
+    },
+    "PATCH": {
+      "name": "string",
+      "email": "string",
+      "age": 1
+    }
   },
   "/users/bulk": {
-    "users": [
-      {
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "age": "30"
-      },
-      {
-        "name": "Jane Smith",
-        "email": "jane.smith@example.com"
-      }
-    ]
+    "POST": {
+      "users": [
+        {
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "age": 30
+        },
+        {
+          "name": "Jane Smith",
+          "email": "jane.smith@example.com",
+          "age": 25
+        }
+      ]
+    }
   }
 }

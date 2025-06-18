@@ -10,11 +10,11 @@
   },
   "/users/<user_id>": {
     "error": {
-      "cause": "Missing required field(s): 'profile_picture', 'created_at', 'role', 'id', 'is_active', 'updated_at'",
-      "description": "An unexpected error occurred while processing the request.",
-      "message": "Internal Server Error"
+      "cause": "Missing required field(s): 'username', 'full_name', 'is_active', 'created_at', 'id', 'updated_at'. Unexpected field(s): 'name', 'age'",
+      "description": "An error occurred while processing your request.",
+      "message": "Unknown Error"
     },
-    "method": "PATCH",
-    "status_code": 500
+    "method": "PUT",
+    "status_code": 0
   }
 }

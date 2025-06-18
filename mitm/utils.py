@@ -370,7 +370,7 @@ def extract_route_parameters(request_path, route_pattern):
     return {}
 
 # Example usage function
-def find_route_pattern(request_path, routes_json_file_path=None, routes_data=None):
+def find_route_pattern(request_path, routes_json_file_path=None, routes_data=None)->str:
     """
     Find the route pattern for a given request path.
     
@@ -400,4 +400,4 @@ def find_route_pattern(request_path, routes_json_file_path=None, routes_data=Non
         if is_dynamic_route_match(request_path, route_pattern):
             return route_pattern
     
-    return None
+    return ""

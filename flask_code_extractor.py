@@ -64,7 +64,7 @@ def is_flask_route_decorator(node: ast.Call) -> bool:
     
     return False
 
-def extract_routes_from_file(filepath: str) -> Dict[str, Dict[str, Any]]:
+def extract_routes_from_file(filepath: str) -> Dict[str, Dict[str, str]]:
     """
     Extract all Flask routes from a Python file.
     
@@ -72,7 +72,7 @@ def extract_routes_from_file(filepath: str) -> Dict[str, Dict[str, Any]]:
         filepath: Path to the Python file
         
     Returns:
-        Dictionary mapping route paths to route info
+        Dictionary mapping route paths to methods and their code
     """
     routes = {}
     
@@ -96,22 +96,16 @@ def extract_routes_from_file(filepath: str) -> Dict[str, Dict[str, Any]]:
                                     methods = [method_attr]
                             
                             if route_path:
-                                func_name = node.name
                                 func_source = ast.get_source_segment(source_code, node)
                                 
-                                # Check if this route already exists with different methods
-                                if route_path in routes:
-                                    # Merge methods if same route has multiple decorators
-                                    for method in methods:
-                                        if method not in routes[route_path]['methods']:
-                                            routes[route_path]['methods'].append(method)
-                                else:
-                                    routes[route_path] = {
-                                        'methods': methods,
-                                        'function': func_name,
-                                        'code': func_source,
-                                        'file': filepath  # Store full path instead of just filename
-                                    }
+                                # Initialize route in dictionary if it doesn't exist
+                                if route_path not in routes:
+                                    routes[route_path] = {}
+                                
+                                # Add each method with its code
+                                for method in methods:
+                                    routes[route_path][method] = func_source
+                                        
                         except Exception as e:
                             print(f"Error extracting route in {filepath} for function {node.name}: {e}")
     
@@ -120,7 +114,7 @@ def extract_routes_from_file(filepath: str) -> Dict[str, Dict[str, Any]]:
     
     return routes
 
-def parse_flask_codebase(directory: str) -> Dict[str, Dict[str, Any]]:
+def parse_flask_codebase(directory: str) -> Dict[str, Dict[str, str]]:
     """
     Parse all Python files in a directory to extract Flask routes.
     
@@ -128,7 +122,7 @@ def parse_flask_codebase(directory: str) -> Dict[str, Dict[str, Any]]:
         directory: Path to the Flask project directory
         
     Returns:
-        Dictionary mapping route paths to route info
+        Dictionary mapping route paths to methods and their code
     """
     flask_routes = {}
     
@@ -138,13 +132,14 @@ def parse_flask_codebase(directory: str) -> Dict[str, Dict[str, Any]]:
                 file_path = os.path.join(root, file)
                 try:
                     routes = extract_routes_from_file(file_path)
-                    for route, info in routes.items():
-                        # If route already exists, add a note about multiple definitions
-                        if route in flask_routes:
-                            flask_routes[route]['notes'] = "Warning: Route defined in multiple files"
-                            flask_routes[route]['also_in'] = flask_routes[route].get('also_in', []) + [info['file']]
-                        else:
-                            flask_routes[route] = info
+                    for route, methods_dict in routes.items():
+                        if route not in flask_routes:
+                            flask_routes[route] = {}
+                        
+                        # Merge methods from this file
+                        for method, code in methods_dict.items():
+                            flask_routes[route][method] = code
+                            
                 except Exception as e:
                     print(f"Error parsing {file_path}: {e}")
     
@@ -160,8 +155,8 @@ if __name__ == "__main__":
         directory = input("Enter the path to your Flask codebase: ")
     
     routes_info = parse_flask_codebase(directory)
+    
     # Output to JSON file
-    # TODO make it put it in the llm
     output_file = "flask_routes.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(routes_info, f, indent=4)
@@ -171,6 +166,6 @@ if __name__ == "__main__":
     
     # Print a summary
     print("\nRoutes summary:")
-    for route, info in routes_info.items():
-        methods_str = ', '.join(info['methods'])
-        print(f"{methods_str.ljust(20)} {route.ljust(40)} {info['function']} ({info['file']})")
+    for route, methods_dict in routes_info.items():
+        methods_str = ', '.join(methods_dict.keys())
+        print(f"{methods_str.ljust(20)} {route}")

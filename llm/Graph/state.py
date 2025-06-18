@@ -24,6 +24,8 @@ class GraphState(TypedDict):
   client_req: Dict[str, Any]
   url: str
   go_to: str
+  all_sql_results:str
+  method:str
   table_name:str
   funcs_result: List[Dict[str, Any]]  # [{result: Any, func_code: str, args: Dict, valid: bool}]
   sqls_result: List[Dict[str, Any]]  # [{result: Any, sql_code: str, executed_query: str, valid: bool}]

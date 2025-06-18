@@ -314,7 +314,7 @@ def main():
     if args.stdout:
         print(func_parser.get_functions_json())
     else:
-        output_file = "./llm/Graph/nodes/sample_functions.json"
+        output_file = "./mitm/json_schema/request_schemas.json"
         func_parser.save_to_file(output_file)
     
     return 0

@@ -32,7 +32,7 @@ class GraphWorkflowAPI:
       print(f"❌ Failed to initialize graph: {e}")
       self.graph_app = None
 
-  def process_code(self, code: str,table_name:str="", client_req: Dict[str, Any] = None, url: str = "") -> Dict[str, Any]:
+  def process_code(self, code: str,table_name:str="", client_req: Dict[str, Any] = None, url: str = "",method:str="GET") -> Dict[str, Any]:
     """
         Process Flask code through the graph workflow
 
@@ -58,6 +58,7 @@ class GraphWorkflowAPI:
       "client_req": client_req or {},
       "url": url,
       "table_name":table_name,
+      "method":method,
       "functions_json_path": "sample_functions.json",
       "go_to": "",
       "funcs_result": [],
@@ -129,6 +130,7 @@ def process_flask_code():
     client_req = data.get('client_req', {})
     url = data.get('url', '')
     table_name=data.get('table_name',"")
+    method=data.get('method',"")
 
     # Log the request (optional)
     if app.config['DEBUG']:
@@ -137,7 +139,7 @@ def process_flask_code():
       print(f"🔗 URL: {url}")
 
     # Process through workflow
-    result = workflow_api.process_code(code, client_req, url,table_name)
+    result = workflow_api.process_code(code, client_req, url,table_name,method)
 
 
     return jsonify(result)

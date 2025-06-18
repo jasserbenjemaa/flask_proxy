@@ -6,7 +6,7 @@ import sys
 from typing import List, Dict, Any
 
 def send_code_to_gemini(code_snippet: str, api_key: str, endpoint_path: str = "/",
-                        methods: List[str] = [], model: str = "gemini-2.0-flash") -> Dict[str, Any]:
+                        method: str = "POST", model: str = "gemini-2.0-flash") -> Dict[str, Any]:
     """
     Send a flask code snippet to Gemini and get sample JSON payload that correctly satisfies
     the structure expected by this endpoint.
@@ -15,7 +15,7 @@ def send_code_to_gemini(code_snippet: str, api_key: str, endpoint_path: str = "/
         code_snippet: The code snippet to send to Gemini
         api_key: Your Gemini API key
         endpoint_path: The API endpoint path (for context)
-        methods: List of HTTP methods for this endpoint
+        method: HTTP method for this endpoint
         model: The Gemini model to use (default: "gemini-2.0-flash")
 
     Returns:
@@ -24,12 +24,8 @@ def send_code_to_gemini(code_snippet: str, api_key: str, endpoint_path: str = "/
     base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     url = f"{base_url}?key={api_key}"
 
-    # Include endpoint path and methods in the prompt if available
-    context = ""
-    if endpoint_path:
-        context += f"API Path: {endpoint_path}\n"
-    if methods:
-        context += f"HTTP Methods: {', '.join(methods)}\n"
+    # Include endpoint path and method in the prompt
+    context = f"API Path: {endpoint_path}\nHTTP Method: {method}\n"
 
     payload = {
         "contents": [
@@ -57,6 +53,7 @@ def send_code_to_gemini(code_snippet: str, api_key: str, endpoint_path: str = "/
 def process_flask_endpoints(input_file: str, output_file: str, api_key: str, model: str = "gemini-2.0-flash") -> None:
     """
     Process Flask endpoints from a JSON file and save the Gemini responses to another file.
+    The input format should be: {"/endpoint": {"GET": "code", "POST": "code"}}
     The output will be formatted with endpoint paths as keys and sample payloads as values.
 
     Args:
@@ -73,65 +70,85 @@ def process_flask_endpoints(input_file: str, output_file: str, api_key: str, mod
         # Initialize the results dictionary with endpoint paths as keys
         results = {}
 
-        total_endpoints = len(flask_routes.keys())
+        # Count total endpoints that need processing
+        total_endpoints = 0
+        for endpoint_path, methods_dict in flask_routes.items():
+            write_methods = ["POST", "PUT", "PATCH"]
+            for method in methods_dict.keys():
+                if method in write_methods:
+                    total_endpoints += 1
+
         processed = 0
 
-        for endpoint_path, endpoint_data in flask_routes.items():
-            processed += 1
-            print(f"Processing endpoint {processed}/{total_endpoints}: {endpoint_path}...")
+        for endpoint_path, methods_dict in flask_routes.items():
+            print(f"Processing endpoint: {endpoint_path}...")
 
-            # Skip endpoints that don't accept POST/PUT/PATCH methods (typically don't need JSON payload)
-            methods = endpoint_data.get("methods", [])
-            write_methods = ["POST", "PUT", "PATCH"]
-            if not any(method in write_methods for method in methods):
-                print(f"Skipping {endpoint_path} as it doesn't use POST/PUT/PATCH methods...")
-                continue
+            # Process each HTTP method for this endpoint
+            for method, code_snippet in methods_dict.items():
+                # Skip endpoints that don't accept POST/PUT/PATCH methods (typically don't need JSON payload)
+                write_methods = ["POST", "PUT", "PATCH"]
+                if method not in write_methods:
+                    print(f"Skipping {endpoint_path} {method} as it doesn't use POST/PUT/PATCH methods...")
+                    continue
 
-            if "code" in endpoint_data and endpoint_data["code"]:
-                # Send the code to Gemini
-                gemini_response = send_code_to_gemini(
-                    endpoint_data["code"],
-                    api_key,
-                    endpoint_path=endpoint_path,
-                    methods=methods,
-                    model=model
-                )
+                processed += 1
+                print(f"Processing {processed}/{total_endpoints}: {endpoint_path} [{method}]...")
 
-                # Extract the response text from Gemini
-                try:
-                    response_text = gemini_response["candidates"][0]["content"]["parts"][0]["text"]
+                if code_snippet and code_snippet.strip():
+                    # Send the code to Gemini
+                    gemini_response = send_code_to_gemini(
+                        code_snippet,
+                        api_key,
+                        endpoint_path=endpoint_path,
+                        method=method,
+                        model=model
+                    )
 
-                    # Format the response text to ensure it's valid JSON
-                    # Strip any markdown formatting or extra text
-                    response_text = response_text.strip()
-                    if response_text.startswith("```json"):
-                        response_text = response_text[7:]
-                    if response_text.startswith("```"):
-                        response_text = response_text[3:]
-                    if response_text.endswith("```"):
-                        response_text = response_text[:-3]
-                    response_text = response_text.strip()
-
-                    # Try to parse the JSON to validate it
+                    # Extract the response text from Gemini
                     try:
-                        json_payload = json.loads(response_text)
-                        # Add the result to our dictionary with endpoint path as key
-                        results[endpoint_path] = json_payload
-                    except json.JSONDecodeError:
-                        print(f"Warning: Invalid JSON response for {endpoint_path}")
-                        results[endpoint_path] = {"error": "Failed to parse JSON from Gemini response"}
+                        response_text = gemini_response["candidates"][0]["content"]["parts"][0]["text"]
 
-                except (KeyError, IndexError):
-                    print(f"Error extracting response from Gemini for {endpoint_path}")
-                    results[endpoint_path] = {"error": "Failed to get proper response from Gemini"}
-            else:
-                print(f"Skipping endpoint {endpoint_path} with no code...")
+                        # Format the response text to ensure it's valid JSON
+                        # Strip any markdown formatting or extra text
+                        response_text = response_text.strip()
+                        if response_text.startswith("```json"):
+                            response_text = response_text[7:]
+                        if response_text.startswith("```"):
+                            response_text = response_text[3:]
+                        if response_text.endswith("```"):
+                            response_text = response_text[:-3]
+                        response_text = response_text.strip()
+
+                        # Try to parse the JSON to validate it
+                        try:
+                            json_payload = json.loads(response_text)
+                            
+                            # Initialize endpoint in results if it doesn't exist
+                            if endpoint_path not in results:
+                                results[endpoint_path] = {}
+                            
+                            # Add the method and its payload to the endpoint
+                            results[endpoint_path][method] = json_payload
+                            
+                        except json.JSONDecodeError:
+                            print(f"Warning: Invalid JSON response for {endpoint_path} [{method}]")
+                            if endpoint_path not in results:
+                                results[endpoint_path] = {}
+                            results[endpoint_path][method] = {"error": "Failed to parse JSON from Gemini response"}
+
+                    except (KeyError, IndexError):
+                        print(f"Error extracting response from Gemini for {endpoint_path} [{method}]")
+                        if endpoint_path not in results:
+                            results[endpoint_path] = {}
+                        results[endpoint_path][method] = {"error": "Failed to get proper response from Gemini"}
+                else:
+                    print(f"Skipping endpoint {endpoint_path} [{method}] with no code...")
 
         # Save the results to the output file with the desired format
         with open(output_file, 'w') as f:
             json.dump(results, f, indent=2)
 
-        print(f"Successfully processed endpoints and saved results to {output_file}")
+        print(f"Successfully processed {processed} endpoint-method combinations and saved results to {output_file}")
 
     except Exception as e:
         print(f"Error processing endpoints: {str(e)}")
@@ -150,7 +167,7 @@ if __name__ == "__main__":
         # Default values if not provided as command line arguments
         input_file = "./flask_routes.json"
         output_file = "./mitm/json_schema/request_schemas.json"
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY","")
         model = "gemini-2.0-flash"
 
     # Process the endpoints

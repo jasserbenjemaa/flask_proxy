@@ -31,12 +31,6 @@ def format_flask_response(state: GraphState) -> Dict[str, Any]:
     client_request = state.get("client_req", {})
     url = state.get("url", "")
 
-    print(f"DEBUG - Raw values:")
-    print(f"  flask_code: {repr(flask_code)}")
-    print(f"  sql_results: {repr(sql_results)}")
-    print(f"  function_results: {repr(function_results)}")
-    print(f"  error_message: {repr(error_message)}")
-    print(f"  client_request: {repr(client_request)}")
 
     # Initialize LLM
     llm = ChatGoogleGenerativeAI(
@@ -53,10 +47,6 @@ def format_flask_response(state: GraphState) -> Dict[str, Any]:
     error_message_str = str(error_message).replace("{", "{{").replace("}", "}}") if error_message else "None"
     client_request_str = str(client_request).replace("{", "{{").replace("}", "}}") if client_request else "None"
 
-    print(f"DEBUG - Processed values:")
-    print(f"  flask_code_str: {repr(flask_code_str[:100])}...")  # Truncate for readability
-    print(f"  error_message_str: {repr(error_message_str)}")
-    print(f"  client_request_str: {repr(client_request_str)}")
 
     # Updated system message to explicitly request structured output
     system_msg = """You are a Flask code formatter expert. Your job is to analyze Flask code and format the response exactly as the code should return it.
@@ -111,7 +101,6 @@ Format and return exactly what this Flask code should return based on the provid
     response = llm.invoke(messages)
     raw_response = response.content.strip()
 
-    print(f"DEBUG - Raw LLM response: {repr(raw_response)}")
 
     # Parse the structured response
     response_data, status_code = parse_llm_response(raw_response)
@@ -122,7 +111,6 @@ Format and return exactly what this Flask code should return based on the provid
       "status_code": status_code
     }
 
-    print(f"DEBUG - Final result: {repr(final_result)}")
 
     # Return updated state
     new_state = {
