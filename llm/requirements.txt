@@ -1,16 +1,6 @@
-langchain
-langgraph
-langchain-community
-langchain-experimental
-langchain-core
-langchain-groq
-pydantic
 python-dotenv
-requests
-typing-extensions
 langchain-google-genai
 supabase
 flask
 requests
 flask-cors==4.0.0
-pytz
